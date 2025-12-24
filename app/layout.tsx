@@ -7,7 +7,7 @@ import './globals.css';
 import TournamentFormModal from '@/components/tournament-form-modal';
 import { Toaster } from '@/components/ui/toaster';
 import TournamentDropdownList from '@/components/header/tournament-dropdown-list';
-import { Trophy } from 'lucide-react';
+import { Trophy, Zap } from 'lucide-react';
 import { getAuthUser } from '@/lib/actions';
 import { ChatProvider } from '../utils/context/ChatContext';
 import { PrivateChat } from '@/components/private-chat';
@@ -34,45 +34,71 @@ export default async function RootLayout({
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
           <ChatProvider>
             <main className="min-h-screen flex flex-col items-center">
               <div className="flex-1 w-full flex flex-col items-center">
-                <header className="w-full border-b border-b-foreground/10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                {/* Cyberpunk Header */}
+                <header className="w-full sticky top-0 z-50 border-b border-cyan-500/20 bg-slate-950/95 backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/80">
+                  {/* Glow effect at top */}
+                  <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+                  
                   <div className="mx-auto px-4">
                     <nav className="flex flex-col py-3 gap-3 md:flex-row md:items-center md:py-4">
-                      <div className="flex items-center justify-between ">
+                      <div className="flex items-center justify-between">
+                        {/* Logo */}
                         <Link
                           href="/"
-                          className="flex items-center space-x-2 text-lg font-semibold hover:text-primary"
+                          className="group flex items-center space-x-3 text-xl font-black transition-all hover:scale-105"
                         >
-                          <Trophy className="h-6 w-6" />
-                          <span className="hidden md:inline">
-                            FragVerse
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-cyan-500 blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
+                            <div className="relative bg-gradient-to-br from-cyan-500 to-blue-600 p-2 rounded-lg">
+                              <Trophy className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                          <span className="hidden md:inline bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent group-hover:from-cyan-300 group-hover:to-purple-300 transition-all">
+                            FRAGVERSE
                           </span>
                         </Link>
                         <div className="md:hidden">
                           <HeaderAuth />
                         </div>
                       </div>
-                      <Separator className="sm:hidden" />
+                      
+                      <Separator className="sm:hidden bg-cyan-500/20" />
+                      
+                      {/* Navigation Items */}
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4 md:justify-start">
                         <TournamentDropdownList />
                         <TournamentFormModal user={user} />
                       </div>
+                      
+                      {/* Auth Section */}
                       <div className="hidden md:block ml-auto">
                         <HeaderAuth />
                       </div>
                     </nav>
                   </div>
+                  
+                  {/* Glow effect at bottom */}
+                  <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
                 </header>
+                
+                {/* Main Content */}
                 <div className="w-full flex flex-col gap-20">{children}</div>
+                
                 {user && <PrivateChat user={user} />}
 
-                <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-5 mt-auto">
+                {/* Cyberpunk Footer */}
+                <footer className="w-full flex items-center justify-center border-t border-cyan-500/20 mx-auto text-center text-xs gap-8 py-5 mt-auto bg-gradient-to-t from-slate-950 to-transparent">
+                  <div className="flex items-center gap-3 text-cyan-100/50">
+                    <Zap className="w-4 h-4 text-cyan-400" />
+                    <span className="font-semibold">Powered by FragVerse</span>
+                  </div>
                   <ThemeSwitcher />
                 </footer>
               </div>
