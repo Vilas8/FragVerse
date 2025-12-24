@@ -90,38 +90,38 @@ export function Notifications({
 
   return (
     <>
-      <div className="fixed top-16 right-4">
+      <div className="fixed top-16 right-4 z-50">
         {showNewNotification && newNotification && (
           <AnimatePresence>
             <motion.div
               key={newNotification.id}
               initial={{ opacity: 0, x: 100 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-primary text-primary-foreground rounded-lg shadow-lg p-4 max-w-sm w-full"
+              className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg shadow-xl p-4 max-w-sm w-full border border-cyan-400/50"
             >
               <div className="flex items-start">
                 <div className="flex-1 mr-2">
-                  {newNotification.type === 'new_message' && ( //different message for different notification types
-                    <p className="text-sm">
+                  {newNotification.type === 'new_message' && (
+                    <p className="text-sm font-semibold">
                       {'New message from ' + newNotification.username}
                     </p>
                   )}
                   {newNotification.type === 'tournament_start' && (
-                    <p className="text-sm">
+                    <p className="text-sm font-semibold">
                       {'Tournament ' +
                         newNotification.message +
                         ' just started!'}
                     </p>
                   )}
                   {newNotification.type === 'new_matchup' && (
-                    <p className="text-sm">
+                    <p className="text-sm font-semibold">
                       {'You got a new opponent in ' +
                         newNotification.message +
                         '!'}
                     </p>
                   )}
                   {newNotification.type === 'request_accepted' && (
-                    <p className="text-sm">
+                    <p className="text-sm font-semibold">
                       {'Your request to join ' +
                         newNotification.message +
                         ' has been accepted!'}
@@ -130,7 +130,7 @@ export function Notifications({
                 </div>
                 <button
                   onClick={() => setShowNewNotification(false)}
-                  className="flex-shrink-0 text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+                  className="flex-shrink-0 text-white/80 hover:text-white transition-colors"
                   aria-label="Close notification"
                 >
                   <X className="h-5 w-5" />
@@ -142,10 +142,14 @@ export function Notifications({
       </div>
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative rounded-full">
-            <Bell className="h-5 w-5" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative rounded-full hover:bg-cyan-500/10 dark:hover:bg-cyan-500/20 transition-colors"
+          >
+            <Bell className="h-5 w-5 text-slate-700 dark:text-cyan-100" />
             {notifications.length > 0 && (
-              <span className="absolute top-1.5 right-3 h-2 w-2 rounded-full bg-destructive" />
+              <span className="absolute top-1.5 right-3 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
             )}
           </Button>
         </PopoverTrigger>
