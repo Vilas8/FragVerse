@@ -6,12 +6,15 @@ import {
 import {
   getMostPopularTournaments,
   getUserCurrentMatches,
+  getAuthUser,
 } from '@/lib/actions';
 import { Swords, Trophy, Zap, Users, Shield, Target } from 'lucide-react';
+import Link from 'next/link';
 
 export default async function Page() {
   const { matches } = await getUserCurrentMatches();
   const { popularTournaments } = await getMostPopularTournaments();
+  const user = await getAuthUser();
 
   return (
     <main className="w-full relative overflow-hidden">
@@ -190,25 +193,27 @@ export default async function Page() {
         />
       </section>
 
-      {/* CTA Section */}
-      <section className="relative w-full py-32">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-200/30 via-purple-200/30 to-pink-200/30 dark:from-cyan-500/10 dark:via-purple-500/10 dark:to-pink-500/10 blur-3xl" />
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 dark:from-cyan-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
-            READY TO COMPETE?
-          </h2>
-          <p className="text-xl md:text-2xl text-slate-700 dark:text-cyan-100/80 mb-12 max-w-2xl mx-auto">
-            Join thousands of players in the ultimate tournament experience
-          </p>
-          <a
-            href="/sign-up"
-            className="inline-block group relative px-12 py-5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-xl font-bold text-xl text-white overflow-hidden transition-all hover:scale-110 hover:shadow-[0_0_50px_rgba(6,182,212,0.6)]"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <span className="relative">START YOUR JOURNEY</span>
-          </a>
-        </div>
-      </section>
+      {/* CTA Section - Only show if user is NOT logged in */}
+      {!user && (
+        <section className="relative w-full py-32">
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-200/30 via-purple-200/30 to-pink-200/30 dark:from-cyan-500/10 dark:via-purple-500/10 dark:to-pink-500/10 blur-3xl" />
+          <div className="container mx-auto px-4 text-center relative z-10">
+            <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 dark:from-cyan-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+              READY TO COMPETE?
+            </h2>
+            <p className="text-xl md:text-2xl text-slate-700 dark:text-cyan-100/80 mb-12 max-w-2xl mx-auto">
+              Join thousands of players in the ultimate tournament experience
+            </p>
+            <Link
+              href="/sign-up"
+              className="inline-block group relative px-12 py-5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-xl font-bold text-xl text-white overflow-hidden transition-all hover:scale-110 hover:shadow-[0_0_50px_rgba(6,182,212,0.6)]"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <span className="relative">START YOUR JOURNEY</span>
+            </Link>
+          </div>
+        </section>
+      )}
     </main>
   );
 }
