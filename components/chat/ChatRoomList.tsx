@@ -33,7 +33,6 @@ interface ChatRoomListProps {
 
 export function ChatRoomList({
   userId,
-  username,
   onSelectRoom,
   selectedRoomId,
 }: ChatRoomListProps) {
@@ -108,7 +107,7 @@ export function ChatRoomList({
                 <Label htmlFor="room-type">Room Type</Label>
                 <Select
                   value={newRoomType}
-                  onValueChange={(value: any) => setNewRoomType(value)}
+                  onValueChange={(value: 'tournament' | 'team' | 'direct' | 'global') => setNewRoomType(value)}
                 >
                   <SelectTrigger id="room-type">
                     <SelectValue />
