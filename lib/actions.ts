@@ -555,15 +555,59 @@ export async function getPublicTournaments() {
 }
 
 export async function UpdateUsername(newName: string, userid: string) {
-  const supabase = createClient();
-  const { error } = await supabase
-    .from('users')
-    .update({ username: newName })
-    .eq('id', userid)
-    .select();
+  try {
+    const supabase = createClient();
+    
+    // Validate username
+    if (newName.length < 4 || newName.length > 20) {
+      return {
+        success: false,
+        error: 'Username must be between 4 and 20 characters'
+      };
+    }
 
-  if (error) {
-    throw new Error('Failed to update name');
+    // Check if username is already taken
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('username', newName)
+      .neq('id', userid)
+      .single();
+
+    if (existingUser) {
+      return {
+        success: false,
+        error: 'Username is already taken'
+      };
+    }
+
+    // Update username in users table
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ username: newName })
+      .eq('id', userid);
+
+    if (updateError) {
+      console.error('Error updating username:', updateError);
+      return {
+        success: false,
+        error: 'Failed to update username'
+      };
+    }
+
+    // Revalidate profile page
+    revalidatePath('/profile');
+    revalidatePath('/profile/[userId]', 'page');
+    
+    return {
+      success: true
+    };
+  } catch (error) {
+    console.error('Error in UpdateUsername:', error);
+    return {
+      success: false,
+      error: 'An unexpected error occurred'
+    };
   }
 }
 
