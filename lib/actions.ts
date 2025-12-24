@@ -168,6 +168,11 @@ export async function submitTournament(formData: FormData) {
     console.log('You must be logged in to create a tournament');
     return { error: 'You must be logged in to create a tournament' };
   }
+  
+  // Get template metadata (optional - for future use)
+  const templateId = formData.get('templateId') as string | null;
+  const templateName = formData.get('templateName') as string | null;
+  
   const data = {
     name: formData.get('name') as string,
     description: formData.get('description') as string,
@@ -176,13 +181,18 @@ export async function submitTournament(formData: FormData) {
     private: formData.get('isPrivate'),
   };
 
+  // Log template info for debugging (you can save this to DB later if you add columns)
+  if (templateId && templateName) {
+    console.log(`Tournament created from template: ${templateName} (${templateId})`);
+  }
+
   const { data: tournament, error } = await supabase
     .from('tournaments')
     .insert([data])
     .select();
 
-  if (error || !tournament[0].id) {
-    console.error(error);
+  if (error || !tournament[0]?.id) {
+    console.error('Tournament creation error:', error);
     return { error: 'Failed to create tournament' };
   }
 
@@ -190,6 +200,9 @@ export async function submitTournament(formData: FormData) {
   revalidatePath('/home');
   return { success: true, tournamentId };
 }
+
+// ... rest of the file remains exactly the same ...
+// (keeping all other functions unchanged)
 
 export async function getTournamentById(id: string) {
   const supabase = createClient();
