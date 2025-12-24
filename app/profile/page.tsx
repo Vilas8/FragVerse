@@ -18,6 +18,7 @@ import ProfileComments from '@/components/profile/comment-box';
 import { CyberButton } from '@/components/ui/cyber-button';
 import Link from 'next/link';
 import { BioBox } from '@/components/profile/bio-box';
+import { PublicUser } from '@/app/types/types';
 
 export default async function Profile() {
   try {
@@ -45,14 +46,18 @@ export default async function Profile() {
     const matches = matchesResult.status === 'fulfilled' ? matchesResult.value.matchesWithUsernames : [];
     const statistics = statisticsResult.status === 'fulfilled' ? statisticsResult.value.data : null;
 
-    // Create default publicUser object if data is missing
-    const publicUser = publicUserData && Object.keys(publicUserData).length > 0 
+    // Create default publicUser object if data is missing - with all required PublicUser fields
+    const publicUser: PublicUser = publicUserData && Object.keys(publicUserData).length > 0 
       ? publicUserData 
       : {
           id: user.id,
           username: user.email?.split('@')[0] || 'User',
-          avatar_url: null,
-          bio: null,
+          avatar_url: '',
+          bio: '',
+          tournaments_won_amount: 0,
+          tournaments_participated_amount: 0,
+          matches_won_amount: 0,
+          matches_lost_amount: 0,
         };
 
     const winRatio = statistics
