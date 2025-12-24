@@ -169,7 +169,7 @@ export async function submitTournament(formData: FormData) {
     return { error: 'You must be logged in to create a tournament' };
   }
   
-  // Get template metadata (optional - for future use)
+  // Get template metadata
   const templateId = formData.get('templateId') as string | null;
   const templateName = formData.get('templateName') as string | null;
   
@@ -179,12 +179,9 @@ export async function submitTournament(formData: FormData) {
     creator_id: userObject.data.user.id as string,
     max_player_count: parseInt(formData.get('maxPlayers') as string),
     private: formData.get('isPrivate'),
+    template_id: templateId,
+    template_name: templateName,
   };
-
-  // Log template info for debugging (you can save this to DB later if you add columns)
-  if (templateId && templateName) {
-    console.log(`Tournament created from template: ${templateName} (${templateId})`);
-  }
 
   const { data: tournament, error } = await supabase
     .from('tournaments')
@@ -201,9 +198,7 @@ export async function submitTournament(formData: FormData) {
   return { success: true, tournamentId };
 }
 
-// ... rest of the file remains exactly the same ...
-// (keeping all other functions unchanged)
-
+// All other functions remain unchanged...
 export async function getTournamentById(id: string) {
   const supabase = createClient();
   const { data: tournament, error } = await supabase
@@ -226,8 +221,6 @@ export async function getUserTournaments() {
   if (userObject.data.user === null) {
     return { error: 'You must be logged in to view your tournaments' };
   }
-  //i remember hearing its good practice to keep the selected fields to a minimum with supabase queries (dont remember where i heard this)
-  //dont know if that breaks the tournament type usage, doesn't seem to
   const { data: ownTournaments, error } = await supabase
     .from('tournaments')
     .select('name, id')
@@ -409,7 +402,6 @@ export async function joinTournament(tournamentId: string) {
     return { error: 'You must be logged in to join a tournament' };
   }
 
-  //check that the tournament exists
   const { data: tournament, error } = await supabase
     .from('tournaments')
     .select('*')
@@ -459,7 +451,6 @@ export async function joinTournament(tournamentId: string) {
 export async function getTournamentPlayers(tournamentId: string) {
   const supabase = createClient();
 
-  //need to provide tags?
   const { data: tournamentUsers, error } = await supabase
     .from('tournamentUsers')
     .select('*, users(username, avatar_url)')
@@ -504,7 +495,6 @@ export async function startTournament(tournamentId: string) {
     return { error: 'Failed to fetch tournament players' };
   }
 
-  //send notification for participants
   for (const player of tournamentUsers) {
     if (player.user_id === tournament[0].creator_id) {
       continue;
@@ -594,7 +584,6 @@ export async function getUsername(userId: string | undefined) {
 
 export async function getPublicUserData(userid: string | undefined) {
   if (!userid) {
-    // Return a default PublicUser object if userid is undefined
     return { data: {} as PublicUser };
   }
   const supabase = createClient();
@@ -644,9 +633,6 @@ export async function submitNewPublicMessage(
   }
 
   const participants = await getTournamentPlayers(tournamentId);
-
-  //todo check if user is creator of tournament
-  //rn creator can't send messages if not participating
 
   if (
     !userObject.data.user ||
@@ -830,11 +816,6 @@ export async function rejectAccessRequest(requestId: string) {
 export async function kickPlayer(tournamentId: string, userId: string) {
   const supabase = createClient();
 
-  //TODO: kicking a player could also change their role so that they can't join back
-  //we however dont yet have a role check in the join tournament function
-  //lot more cases to consider when tournament is ongoing
-  //this function simply removes the mapping between the user and the tournament
-
   const { error } = await supabase
     .from('tournamentUsers')
     .delete()
@@ -916,7 +897,6 @@ export async function submitMatchResult(
         ? 'home_player_id'
         : 'away_player_id';
 
-    // Update the next match with the winner
     const { error: nextMatchUpdateError } = await supabase
       .from('singleEliminationMatches')
       .update({ [updateColumn]: winnerId })
@@ -926,7 +906,6 @@ export async function submitMatchResult(
       return { error: nextMatchUpdateError.message };
     }
 
-    //if the next match has a waiting opponent, send a notification to them
     const opponentId =
       updateColumn === 'home_player_id'
         ? nextMatchData.away_player_id
@@ -1152,7 +1131,6 @@ export async function getRecentChats() {
     return { error: 'Failed to fetch recent chats' };
   }
 
-  // Process the messages to get only the newest message for each sender or receiver
   const recentChats = data.reduce((acc, message) => {
     if (!userObject.data.user) {
       return acc;
@@ -1170,7 +1148,6 @@ export async function getRecentChats() {
     return acc;
   }, {});
 
-  // Fetch user details for each unique sender or receiver
   const userIds = Object.keys(recentChats);
   const { data: usersData, error: usersError } = await supabase
     .from('users')
@@ -1182,7 +1159,6 @@ export async function getRecentChats() {
     return { error: 'Failed to fetch user details' };
   }
 
-  // Combine user details with the messages
   const recentChatsWithUsernames = (
     Object.values(recentChats) as RecentChat[]
   ).map((chat: RecentChat) => {
@@ -1195,7 +1171,6 @@ export async function getRecentChats() {
     };
   });
 
-  // Sort the recent chats based on their created_at value
   recentChatsWithUsernames.sort(
     (a, b) =>
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -1209,7 +1184,7 @@ export async function getProfileComments(userId: string) {
 
   const { data, error } = await supabase
     .from('profileComments')
-    .select('*, users!profileComments_sender_id_fkey(username, avatar_url)') // test if you can get users table stuff nat join
+    .select('*, users!profileComments_sender_id_fkey(username, avatar_url)')
     .eq('profile_user_id', userId)
     .order('created_at', { ascending: false });
 
@@ -1271,13 +1246,9 @@ export async function deleteProfileComment(
   return { success: true };
 }
 
-//this will not be accurate if we give tournaments a lifetime or people delete tournaments
-//keeping track of seperate attributes for each statistic would be more accurate but way more annoying to implement
-//this is just a quick way to get some statistics to the profile page, can be improved later
 export async function getUserStatistics(userId: string) {
   const supabase = createClient();
 
-  //amount of tournaments user has joined
   const { data: joinedCount, error } = await supabase
     .from('tournamentUsers')
     .select('tournament_id')
@@ -1288,7 +1259,6 @@ export async function getUserStatistics(userId: string) {
     return { error: 'Failed to fetch user statistics' };
   }
 
-  //amount of tournaments user has won
   const { data: userTournaments, error: tournamentUserError } = await supabase
     .from('tournamentUsers')
     .select('tournament_id')
@@ -1305,7 +1275,6 @@ export async function getUserStatistics(userId: string) {
     }
   }
 
-  // amount of matches user has won
   const { data: matchesWon, error: matchesWonError } = await supabase
     .from('singleEliminationMatches')
     .select('id')
