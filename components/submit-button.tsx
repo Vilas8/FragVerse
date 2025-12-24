@@ -1,23 +1,39 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { CyberButton } from '@/components/ui/cyber-button';
 import { type ComponentProps } from 'react';
 import { useFormStatus } from 'react-dom';
+import { Loader2 } from 'lucide-react';
 
-type Props = ComponentProps<typeof Button> & {
+type Props = ComponentProps<typeof CyberButton> & {
   pendingText?: string;
 };
 
 export function SubmitButton({
   children,
   pendingText = 'Submitting...',
+  variant = 'primary',
   ...props
 }: Props) {
   const { pending } = useFormStatus();
 
   return (
-    <Button type="submit" aria-disabled={pending} {...props}>
-      {pending ? pendingText : children}
-    </Button>
+    <CyberButton 
+      type="submit" 
+      aria-disabled={pending} 
+      disabled={pending}
+      variant={variant}
+      fullWidth
+      {...props}
+    >
+      {pending ? (
+        <div className="flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          {pendingText}
+        </div>
+      ) : (
+        children
+      )}
+    </CyberButton>
   );
 }
