@@ -63,10 +63,13 @@ export default async function AuthButton() {
       <NotificationComponent user={user} />
       <a href="/profile">
         <Avatar>
-          <AvatarImage src={publicUser.avatar_url} alt={''} />{' '}
-          <AvatarFallback>
-            {publicUser.username?.charAt(0).toUpperCase()}
-          </AvatarFallback>
+          {publicUser?.avatar_url ? (
+            <AvatarImage src={publicUser.avatar_url} alt="" />
+          ) : (
+            <AvatarFallback>
+              {publicUser?.username?.charAt(0).toUpperCase() || "F"}
+            </AvatarFallback>
+          )}
         </Avatar>
       </a>
 
