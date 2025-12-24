@@ -1,16 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Search } from 'lucide-react';
+import { CyberInput, CyberSelect } from '@/components/ui/cyber-input';
+import { CyberButton } from '@/components/ui/cyber-button';
+import { Search, Trophy, Filter, TrendingUp } from 'lucide-react';
 import { TournamentWithStatus } from '@/app/tournaments/page';
 import TournamentCard from '../tournament/card';
 
@@ -53,66 +46,146 @@ export default function TournmamentsBrowser({
     indexOfLastTournament
   );
 
+  const totalPages = Math.ceil(filteredTournaments.length / tournamentsPerPage);
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Browse Public Tournaments</h1>
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <div className="relative flex-grow">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search tournaments..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
+    <div className="container mx-auto px-4 py-12">
+      {/* Header */}
+      <div className="mb-12 text-center">
+        <div className="flex items-center justify-center mb-4">
+          <div className="relative">
+            <div className="absolute inset-0 bg-cyan-500 blur-2xl opacity-50 animate-pulse" />
+            <Trophy className="h-12 w-12 text-cyan-400 relative" />
+          </div>
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="waiting_for_players">
-              Waiting For Players
-            </SelectItem>
-            <SelectItem value="ongoing">Ongoing</SelectItem>
-            <SelectItem value="ended">Finished</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="popularity">Popular</SelectItem>
-            <SelectItem value="newest">Newest</SelectItem>
-          </SelectContent>
-        </Select>
+        <h1 className="text-5xl font-black bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3">
+          BROWSE TOURNAMENTS
+        </h1>
+        <p className="text-cyan-100/60 text-lg">Discover and join competitive gaming tournaments</p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {currentTournaments.map((tournament) => (
-          <TournamentCard key={tournament.id} tournament={tournament} />
-        ))}
-      </div>
-      <div className="flex justify-center gap-2">
-        {Array.from(
-          {
-            length: Math.ceil(filteredTournaments.length / tournamentsPerPage),
-          },
-          (_, i) => (
-            <Button
-              key={i}
-              variant={currentPage === i + 1 ? 'default' : 'outline'}
-              onClick={() => paginate(i + 1)}
+
+      {/* Filters */}
+      <div className="mb-8 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Search */}
+          <div className="lg:col-span-1">
+            <CyberInput
+              type="text"
+              placeholder="Search tournaments..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              icon={Search}
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <CyberSelect
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              icon={Filter}
+              label=""
             >
-              {i + 1}
-            </Button>
-          )
-        )}
+              <option value="all">All Tournaments</option>
+              <option value="waiting_for_players">Recruiting</option>
+              <option value="ongoing">Live Now</option>
+              <option value="ended">Finished</option>
+            </CyberSelect>
+          </div>
+
+          {/* Sort */}
+          <div>
+            <CyberSelect
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              icon={TrendingUp}
+              label=""
+            >
+              <option value="popularity">Most Popular</option>
+              <option value="newest">Newest First</option>
+            </CyberSelect>
+          </div>
+        </div>
+
+        {/* Results Count */}
+        <div className="flex items-center gap-2 text-sm text-cyan-300">
+          <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+          <span className="font-semibold">
+            {filteredTournaments.length} {filteredTournaments.length === 1 ? 'tournament' : 'tournaments'} found
+          </span>
+        </div>
       </div>
+
+      {/* Tournament Grid */}
+      {currentTournaments.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+            {currentTournaments.map((tournament) => (
+              <TournamentCard key={tournament.id} tournament={tournament} />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 flex-wrap">
+              <CyberButton
+                variant="ghost"
+                size="sm"
+                onClick={() => paginate(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </CyberButton>
+              
+              {Array.from({ length: totalPages }, (_, i) => {
+                const pageNum = i + 1;
+                // Show first page, last page, current page, and pages around current
+                if (
+                  pageNum === 1 ||
+                  pageNum === totalPages ||
+                  (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                ) {
+                  return (
+                    <CyberButton
+                      key={i}
+                      variant={currentPage === pageNum ? 'primary' : 'secondary'}
+                      size="sm"
+                      onClick={() => paginate(pageNum)}
+                      className="min-w-[40px]"
+                    >
+                      {pageNum}
+                    </CyberButton>
+                  );
+                } else if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
+                  return (
+                    <span key={i} className="text-cyan-400 px-2">...</span>
+                  );
+                }
+                return null;
+              })}
+              
+              <CyberButton
+                variant="ghost"
+                size="sm"
+                onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </CyberButton>
+            </div>
+          )}
+        </>
+      ) : (
+        // Empty State
+        <div className="text-center py-20">
+          <div className="mb-6">
+            <Trophy className="h-20 w-20 text-cyan-500/30 mx-auto" />
+          </div>
+          <h3 className="text-2xl font-bold text-white mb-2">No tournaments found</h3>
+          <p className="text-cyan-100/60">Try adjusting your search or filters</p>
+        </div>
+      )}
     </div>
   );
 }
