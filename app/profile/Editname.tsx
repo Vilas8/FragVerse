@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { UpdateUsername } from '@/lib/actions';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+
 interface EditableUsernameProps {
   username: string;
   userid: string;
@@ -16,6 +19,8 @@ const EditableUsername: React.FC<EditableUsernameProps> = ({
   const [tempName, setTempName] = useState(username);
   const [currentName, setCurrentName] = useState(username);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleSaveName = async () => {
     if (tempName.length < 4) {
@@ -30,18 +35,29 @@ const EditableUsername: React.FC<EditableUsernameProps> = ({
       setError('Username must be less than 20 letters.');
       return;
     }
+    
     try {
-      await UpdateUsername(tempName, `${userid}`);
-      setCurrentName(tempName);
-      setIsEditing(false);
+      setIsLoading(true);
       setError('');
+      
+      const result = await UpdateUsername(tempName, userid);
+      
+      if (result.success) {
+        setCurrentName(tempName);
+        setIsEditing(false);
+        // Refresh the page to show updated username everywhere
+        router.refresh();
+      } else {
+        setError(result.error || 'Failed to update username');
+      }
     } catch (error) {
       console.error('Error updating username:', error);
-      alert('Failed to update username.');
+      setError('Failed to update username. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Edit mode and reset tempName if canceled
   const handleEdit = () => setIsEditing(true);
   const handleCancel = () => {
     setIsEditing(false);
@@ -60,21 +76,29 @@ const EditableUsername: React.FC<EditableUsernameProps> = ({
             className="text-2xl font-bold"
             aria-label="Edit username"
             maxLength={20}
+            disabled={isLoading}
           />
-          {error && <p className="text-red-500">{error}</p>}
-          <div className="space-x-2">
-            <Button onClick={handleSaveName} size="sm">
-              Save
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <div className="flex gap-2">
+            <Button onClick={handleSaveName} size="sm" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save'
+              )}
             </Button>
-            <Button onClick={handleCancel} variant="outline" size="sm">
+            <Button onClick={handleCancel} variant="outline" size="sm" disabled={isLoading}>
               Cancel
             </Button>
           </div>
         </>
       ) : (
         <>
-          <p className="text-2xl font-bold">{currentName}</p>
-          <Button onClick={handleEdit} size="sm">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white">{currentName}</h2>
+          <Button onClick={handleEdit} size="sm" variant="outline">
             Edit username
           </Button>
         </>
