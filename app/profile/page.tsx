@@ -39,24 +39,21 @@ export default async function Profile() {
     ]);
 
     // Extract data with fallbacks
-    const publicUser = publicUserResult.status === 'fulfilled' ? publicUserResult.value.data : null;
+    const publicUserData = publicUserResult.status === 'fulfilled' ? publicUserResult.value.data : null;
     const tournaments = tournamentsResult.status === 'fulfilled' ? tournamentsResult.value.tournaments : [];
     const comments = commentsResult.status === 'fulfilled' ? commentsResult.value.comments : [];
     const matches = matchesResult.status === 'fulfilled' ? matchesResult.value.matchesWithUsernames : [];
     const statistics = statisticsResult.status === 'fulfilled' ? statisticsResult.value.data : null;
 
-    // Ensure publicUser exists
-    if (!publicUser) {
-      return (
-        <div className="container mx-auto p-4">
-          <CyberCard variant="default">
-            <CyberCardContent className="text-center py-12">
-              <p className="text-red-400">Error loading profile data. Please try again.</p>
-            </CyberCardContent>
-          </CyberCard>
-        </div>
-      );
-    }
+    // Create default publicUser object if data is missing
+    const publicUser = publicUserData && Object.keys(publicUserData).length > 0 
+      ? publicUserData 
+      : {
+          id: user.id,
+          username: user.email?.split('@')[0] || 'User',
+          avatar_url: null,
+          bio: null,
+        };
 
     const winRatio = statistics
       ? Math.round(
@@ -326,6 +323,7 @@ export default async function Profile() {
           <CyberCardContent className="text-center py-12">
             <p className="text-red-400 text-lg mb-2">Something went wrong</p>
             <p className="text-cyan-100/60">Unable to load profile. Please try again later.</p>
+            <p className="text-xs text-slate-500 mt-4">{error instanceof Error ? error.message : 'Unknown error'}</p>
           </CyberCardContent>
         </CyberCard>
       </div>
