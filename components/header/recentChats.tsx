@@ -58,8 +58,12 @@ export default function RecentChatsList({ user }: { user: User }) {
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <MessageSquare className="h-5 w-5" />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="relative rounded-full hover:bg-purple-500/10 dark:hover:bg-purple-500/20 transition-colors"
+        >
+          <MessageSquare className="h-5 w-5 text-slate-700 dark:text-purple-100" />
           <span className="sr-only">Open recent chats</span>
         </Button>
       </DropdownMenuTrigger>
