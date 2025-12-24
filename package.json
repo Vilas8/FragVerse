@@ -1,4 +1,7 @@
 {
+  "name": "fragverse",
+  "version": "1.0.0",
+  "description": "A comprehensive e-sports tournament platform for creating and managing competitive gaming tournaments",
   "private": true,
   "scripts": {
     "dev": "next dev",
