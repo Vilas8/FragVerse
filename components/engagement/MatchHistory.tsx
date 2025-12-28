@@ -18,7 +18,7 @@ interface MatchStats {
   total: number;
   wins: number;
   losses: number;
-  winRate: string;
+  winRate: string | number;
 }
 
 interface Props {
@@ -36,7 +36,14 @@ export default function MatchHistory({ userId }: Props) {
       const statsResult = await getMatchStats(userId);
 
       if (!matchesResult.error) setMatches(matchesResult.matches || []);
-      if (!statsResult.error) setStats(statsResult.stats);
+      if (!statsResult.error && statsResult.stats) {
+        setStats({
+          total: statsResult.stats.total,
+          wins: statsResult.stats.wins,
+          losses: statsResult.stats.losses,
+          winRate: parseFloat(String(statsResult.stats.winRate)) || 0,
+        });
+      }
       setLoading(false);
     };
 
@@ -77,7 +84,7 @@ export default function MatchHistory({ userId }: Props) {
         </div>
         <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
           <p className="text-xs text-gray-600 font-semibold">WIN RATE</p>
-          <p className="text-2xl font-bold text-purple-600 mt-1">{stats.winRate}%</p>
+          <p className="text-2xl font-bold text-purple-600 mt-1">{typeof stats.winRate === 'number' ? stats.winRate.toFixed(1) : stats.winRate}%</p>
         </div>
       </div>
 
