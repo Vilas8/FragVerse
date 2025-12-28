@@ -5,11 +5,16 @@ import { getPublicActivityFeed } from '@/lib/engagement-actions';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
+interface ActivityMetadata {
+  new_level?: number;
+  [key: string]: unknown;
+}
+
 interface Activity {
   id: string;
   user_id: string;
   activity_type: string;
-  metadata?: any;
+  metadata?: ActivityMetadata;
   created_at: string;
 }
 
@@ -25,7 +30,7 @@ const getActivityIcon = (type: string) => {
   return icons[type] || '✨';
 };
 
-const getActivityText = (type: string, metadata?: any) => {
+const getActivityText = (type: string, metadata?: ActivityMetadata) => {
   const texts: Record<string, string> = {
     tournament_join: 'joined a tournament',
     tournament_win: 'won a tournament',

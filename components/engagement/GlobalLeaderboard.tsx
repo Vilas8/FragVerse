@@ -49,7 +49,7 @@ export default function GlobalLeaderboard() {
       </h2>
 
       <div className="space-y-2">
-        {leaderboard.map((entry, index) => (
+        {leaderboard.map((entry) => (
           <div
             key={entry.user_id}
             className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-transparent rounded-lg border border-blue-200 hover:shadow-lg transition-shadow"

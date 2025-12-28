@@ -1,11 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getFriends, getFriendRequests, sendFriendRequest, acceptFriendRequest, removeFriend } from '@/lib/engagement-actions';
+import { getFriends, getFriendRequests, acceptFriendRequest, removeFriend } from '@/lib/engagement-actions';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 
 interface Friend {
   friend_id: string;
@@ -25,7 +23,6 @@ export default function FriendsPanel({ userId }: Props) {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {

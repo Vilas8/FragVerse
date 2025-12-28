@@ -75,16 +75,18 @@ export async function getPlayerStats(userId: string) {
   return { stats: data };
 }
 
+interface UpdateStatsInput {
+  tournaments_won?: number;
+  tournaments_joined?: number;
+  matches_won?: number;
+  matches_lost?: number;
+  total_xp?: number;
+  rank_points?: number;
+}
+
 export async function updatePlayerStats(
   userId: string,
-  stats: {
-    tournaments_won?: number;
-    tournaments_joined?: number;
-    matches_won?: number;
-    matches_lost?: number;
-    total_xp?: number;
-    rank_points?: number;
-  }
+  stats: UpdateStatsInput
 ) {
   const supabase = createClient();
   
@@ -408,11 +410,18 @@ export async function getPublicActivityFeed() {
   return { activities: data };
 }
 
+type ActivityType = 'tournament_join' | 'tournament_win' | 'match_win' | 'achievement' | 'friend_add' | 'level_up';
+
+interface ActivityMetadata {
+  new_level?: number;
+  [key: string]: unknown;
+}
+
 export async function createActivity(
   userId: string,
-  activityType: 'tournament_join' | 'tournament_win' | 'match_win' | 'achievement' | 'friend_add' | 'level_up',
+  activityType: ActivityType,
   relatedId?: string,
-  metadata?: any,
+  metadata?: ActivityMetadata,
   isPublic = true
 ) {
   const supabase = createClient();
@@ -566,7 +575,7 @@ export async function completeChallengeAndClaim(challengeId: string) {
   }
 
   // Award XP to player stats
-  const xpReward = challenge.daily_challenges?.xp_reward || 0;
+  const xpReward = (challenge.daily_challenges as { xp_reward: number } | null)?.xp_reward || 0;
   if (xpReward > 0) {
     await updatePlayerStats(user.data.user.id, {
       total_xp: xpReward,
@@ -661,12 +670,6 @@ export async function getRecommendedTournaments() {
   if (!user.data.user) {
     return { error: 'Must be logged in' };
   }
-
-  const { data: stats } = await supabase
-    .from('player_stats')
-    .select('level')
-    .eq('user_id', user.data.user.id)
-    .single();
 
   // Get tournaments similar to user's skill level
   const { data, error } = await supabase

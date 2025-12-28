@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getDailyChallenges, getUserChallenges, completeChallengeAndClaim } from '@/lib/engagement-actions';
+import { getUserChallenges, completeChallengeAndClaim } from '@/lib/engagement-actions';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

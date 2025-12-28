@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import GlobalLeaderboard from '@/components/engagement/GlobalLeaderboard';
 import AchievementBadges from '@/components/engagement/AchievementBadges';
