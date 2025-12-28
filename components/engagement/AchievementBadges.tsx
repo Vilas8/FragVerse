@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { getAchievementProgress } from '@/lib/engagement-actions';
 import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 
 interface Achievement {
@@ -131,7 +130,12 @@ export default function AchievementBadges({ userId }: Props) {
                       <span>Progress</span>
                       <span>{Math.round(achievement.progress)}%</span>
                     </div>
-                    <Progress value={achievement.progress} className="h-2" />
+                    <div className="w-full h-2 bg-gray-300 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all"
+                        style={{ width: `${achievement.progress}%` }}
+                      />
+                    </div>
                   </div>
                 )}
                 {achievement.unlocked && (
