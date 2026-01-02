@@ -1,3 +1,13 @@
+export interface ObstacleProperties {
+  disappearDelay?: number;
+  reappearDelay?: number;
+  speed?: number;
+  popupDelay?: number;
+  destinationX?: number;
+  destinationY?: number;
+  [key: string]: number | undefined;
+}
+
 export interface LevelData {
   spawnPoint: { x: number; y: number };
   platforms: Array<{ x: number; y: number; width: number; height: number }>;
@@ -10,7 +20,7 @@ export interface LevelData {
     type: 'disappearing' | 'saw' | 'popup-spike' | 'gravity-flip' | 'control-reverse' | 'fake-door' | 'teleport';
     width?: number;
     height?: number;
-    properties?: any;
+    properties?: ObstacleProperties;
   }>;
   door: { x: number; y: number };
 }
