@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { createLevel } from '../levels/LevelGenerator';
 import { Enemy } from '../entities/Enemy';
 import { Powerup, PowerupManager } from '../entities/Powerup';
+import { Obstacle } from '../entities/Obstacle';
 import { LevelData } from '../types';
 
 interface PlatformData {
@@ -41,6 +42,7 @@ export class MainScene extends Phaser.Scene {
   // Enemy and powerup management
   private enemies: Enemy[] = [];
   private powerups: Powerup[] = [];
+  private obstacles: Obstacle[] = [];
   private powerupManager: PowerupManager = new PowerupManager();
   private enemiesDefeated = 0;
   
@@ -53,6 +55,9 @@ export class MainScene extends Phaser.Scene {
   // Game state
   private canDoubleJump = false;
   private hasShield = false;
+  private gravityFlipped = false;
+  private controlsReversed = false;
+  private baseGravity = 1000;
 
   constructor() {
     super({ key: 'MainScene' });
@@ -65,6 +70,8 @@ export class MainScene extends Phaser.Scene {
     this.enemiesDefeated = 0;
     this.startTime = Date.now();
     this.powerupManager.clear();
+    this.gravityFlipped = false;
+    this.controlsReversed = false;
   }
 
   create() {
@@ -82,9 +89,16 @@ export class MainScene extends Phaser.Scene {
     this.player = this.physics.add.sprite(this.spawnPoint.x, this.spawnPoint.y, 'player');
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0);
+    this.physics.world.gravity.y = this.baseGravity;
 
     // Collisions
     this.physics.add.collider(this.player, this.platforms);
+    
+    // Obstacle collisions
+    this.obstacles.forEach((obstacle) => {
+      this.physics.add.collider(this.player, obstacle.sprite, () => this.handleObstacleCollision(obstacle));
+    });
+    
     this.physics.add.overlap(this.player, this.spikes, this.hitSpike, undefined, this);
     this.physics.add.overlap(this.player, this.door, this.reachDoor, undefined, this);
     
@@ -163,6 +177,8 @@ export class MainScene extends Phaser.Scene {
     this.enemies = [];
     this.powerups.forEach((powerup) => powerup.destroy());
     this.powerups = [];
+    this.obstacles.forEach((obstacle) => obstacle.destroy());
+    this.obstacles = [];
 
     // Set spawn point
     this.spawnPoint = level.spawnPoint;
@@ -191,6 +207,20 @@ export class MainScene extends Phaser.Scene {
       const powerup = new Powerup(this, powerupData.x, powerupData.y, powerupData.type, 'powerup');
       this.powerups.push(powerup);
       this.physics.add.overlap(this.player, powerup.sprite, () => this.collectPowerup(powerup), undefined, this);
+    });
+    
+    // Create obstacles
+    level.obstacles.forEach((obstacleData) => {
+      const obstacle = new Obstacle(this, obstacleData.x, obstacleData.y, obstacleData.type, obstacleData.properties);
+      this.obstacles.push(obstacle);
+      
+      if (obstacleData.type === 'gravity-flip' || obstacleData.type === 'control-reverse') {
+        // These don't need collision, they're zone-based
+        this.physics.add.overlap(this.player, obstacle.sprite, () => this.handleObstacleCollision(obstacle), undefined, this);
+      } else {
+        // Saw, disappearing, popup spike need collision
+        this.physics.add.collider(this.player, obstacle.sprite, () => this.handleObstacleCollision(obstacle));
+      }
     });
 
     // Create door
@@ -290,6 +320,11 @@ export class MainScene extends Phaser.Scene {
       }
     });
     
+    // Update obstacles
+    this.obstacles.forEach((obstacle) => {
+      obstacle.update(this.game.loop.delta);
+    });
+    
     // Update powerup effects
     this.powerupManager.update(Date.now());
     this.hasShield = this.powerupManager.hasActiveShield();
@@ -306,6 +341,11 @@ export class MainScene extends Phaser.Scene {
         return `${p}(${remaining}s)`;
       }).join(' ');
     }
+    
+    // Add status effects
+    if (this.gravityFlipped) powerupDisplay += ' | GRAVITY FLIPPED ⬆';
+    if (this.controlsReversed) powerupDisplay += ' | CONTROLS REVERSED ↔';
+    
     this.powerupText.setText(powerupDisplay);
 
     // Movement
@@ -313,9 +353,14 @@ export class MainScene extends Phaser.Scene {
     const speed = baseSpeed * this.powerupManager.getSpeedMultiplier();
     const jumpVelocity = -400;
 
-    const left = this.cursors.left.isDown || this.wasd.left.isDown || this.mobileControls.left;
-    const right = this.cursors.right.isDown || this.wasd.right.isDown || this.mobileControls.right;
+    let left = this.cursors.left.isDown || this.wasd.left.isDown || this.mobileControls.left;
+    let right = this.cursors.right.isDown || this.wasd.right.isDown || this.mobileControls.right;
     const jump = this.cursors.up.isDown || this.cursors.space.isDown || this.wasd.up.isDown || this.mobileControls.jump;
+
+    // Reverse controls if in reverse zone
+    if (this.controlsReversed) {
+      [left, right] = [right, left];
+    }
 
     if (left) {
       this.player.setVelocityX(-speed);
@@ -326,7 +371,8 @@ export class MainScene extends Phaser.Scene {
     }
 
     if (jump && this.player.body!.touching.down) {
-      this.player.setVelocityY(jumpVelocity);
+      const jumpForce = this.gravityFlipped ? 400 : jumpVelocity;
+      this.player.setVelocityY(jumpForce);
     }
 
     // Check if fell off map
@@ -335,12 +381,50 @@ export class MainScene extends Phaser.Scene {
     }
   }
 
+  handleObstacleCollision(obstacle: Obstacle): void {
+    switch (obstacle.getType()) {
+      case 'saw':
+      case 'popup-spike':
+        this.hitSpike();
+        break;
+      case 'gravity-flip':
+        this.toggleGravityFlip();
+        break;
+      case 'control-reverse':
+        this.toggleControlReverse();
+        break;
+      case 'fake-door':
+        this.die();
+        break;
+      case 'teleport':
+        const dest = obstacle.getDestination();
+        if (dest) {
+          this.player.setPosition(dest.x, dest.y);
+          this.player.setVelocity(0, 0);
+        }
+        break;
+    }
+  }
+
+  toggleGravityFlip(): void {
+    this.gravityFlipped = !this.gravityFlipped;
+    this.physics.world.gravity.y = this.gravityFlipped ? -this.baseGravity : this.baseGravity;
+    this.player.setTint(this.gravityFlipped ? 0x00ccff : 0xffffff);
+  }
+
+  toggleControlReverse(): void {
+    this.controlsReversed = !this.controlsReversed;
+    this.player.setTint(this.controlsReversed ? 0xff00ff : 0xffffff);
+  }
+
   hitSpike() {
     if (this.hasShield) {
       this.powerupManager.useShield();
       this.player.setTint(0xffaa00); // Orange tint when shield breaks
       this.time.delayedCall(200, () => {
-        this.player.clearTint();
+        if (this.gravityFlipped) this.player.setTint(0x00ccff);
+        else if (this.controlsReversed) this.player.setTint(0xff00ff);
+        else this.player.clearTint();
       });
     } else {
       this.die();
@@ -354,7 +438,9 @@ export class MainScene extends Phaser.Scene {
       this.enemiesDefeated++;
       this.player.setTint(0xffaa00);
       this.time.delayedCall(200, () => {
-        this.player.clearTint();
+        if (this.gravityFlipped) this.player.setTint(0x00ccff);
+        else if (this.controlsReversed) this.player.setTint(0xff00ff);
+        else this.player.clearTint();
       });
     } else {
       this.die();
@@ -368,7 +454,9 @@ export class MainScene extends Phaser.Scene {
     // Visual feedback
     this.player.setTint(0xffff00);
     this.time.delayedCall(100, () => {
-      this.player.clearTint();
+      if (this.gravityFlipped) this.player.setTint(0x00ccff);
+      else if (this.controlsReversed) this.player.setTint(0xff00ff);
+      else this.player.clearTint();
     });
   }
 
@@ -378,6 +466,12 @@ export class MainScene extends Phaser.Scene {
     
     // Flash screen red
     this.cameras.main.flash(200, 255, 0, 0);
+    
+    // Reset modifiers
+    this.gravityFlipped = false;
+    this.controlsReversed = false;
+    this.physics.world.gravity.y = this.baseGravity;
+    this.player.clearTint();
     
     // Respawn
     this.player.setPosition(this.spawnPoint.x, this.spawnPoint.y);
