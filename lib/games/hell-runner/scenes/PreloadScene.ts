@@ -68,6 +68,11 @@ export class PreloadScene extends Phaser.Scene {
     
     // Create powerup sprite
     this.createPowerupSprite();
+    
+    // Create obstacle sprites
+    this.createObstacleSprite();
+    this.createSawSprite();
+    this.createTeleportSprite();
   }
 
   createPlayerSprite() {
@@ -153,6 +158,47 @@ export class PreloadScene extends Phaser.Scene {
     graphics.closePath();
     graphics.fillPath();
     graphics.generateTexture('powerup', 16, 16);
+    graphics.destroy();
+  }
+
+  createObstacleSprite() {
+    const graphics = this.add.graphics();
+    // Draw generic obstacle (gray platform)
+    graphics.fillStyle(0xcccccc);
+    graphics.fillRect(0, 0, 32, 16);
+    graphics.fillStyle(0x999999);
+    graphics.fillRect(4, 2, 24, 4);
+    graphics.generateTexture('obstacle', 32, 16);
+    graphics.destroy();
+  }
+
+  createSawSprite() {
+    const graphics = this.add.graphics();
+    // Draw spinning saw blade
+    graphics.fillStyle(0xffcc00);
+    graphics.fillCircle(8, 8, 8);
+    // Saw teeth
+    graphics.fillStyle(0xff9900);
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const x = 8 + Math.cos(angle) * 9;
+      const y = 8 + Math.sin(angle) * 9;
+      graphics.fillTriangleShape([{x: 8, y: 8}, {x: x - 1.5, y: y - 1.5}, {x: x + 1.5, y: y + 1.5}]);
+    }
+    graphics.generateTexture('saw', 16, 16);
+    graphics.destroy();
+  }
+
+  createTeleportSprite() {
+    const graphics = this.add.graphics();
+    // Draw portal/teleport sprite
+    graphics.fillStyle(0x0000ff);
+    graphics.fillCircle(8, 8, 8);
+    graphics.fillStyle(0x00ffff);
+    graphics.fillCircle(8, 8, 5);
+    graphics.fillStyle(0x0000ff);
+    graphics.fillCircle(8, 8, 2);
+    graphics.generateTexture('teleport', 16, 16);
     graphics.destroy();
   }
 
