@@ -5,16 +5,18 @@ export class GameOverScene extends Phaser.Scene {
   private stage!: number;
   private deaths!: number;
   private completionTime!: number;
+  private enemiesDefeated!: number;
 
   constructor() {
     super({ key: 'GameOverScene' });
   }
 
-  init(data: { door: number; stage: number; deaths: number; time: number }) {
+  init(data: { door: number; stage: number; deaths: number; time: number; enemiesDefeated?: number }) {
     this.door = data.door;
     this.stage = data.stage;
     this.deaths = data.deaths;
     this.completionTime = data.time;
+    this.enemiesDefeated = data.enemiesDefeated || 0;
   }
 
   create() {
@@ -22,7 +24,7 @@ export class GameOverScene extends Phaser.Scene {
     const height = this.cameras.main.height;
 
     // Title
-    const title = this.add.text(width / 2, height / 3, 'STAGE COMPLETE!', {
+    const title = this.add.text(width / 2, height / 5, 'STAGE COMPLETE!', {
       fontSize: '48px',
       color: '#00ff00',
       fontFamily: 'monospace',
@@ -30,19 +32,42 @@ export class GameOverScene extends Phaser.Scene {
     });
     title.setOrigin(0.5);
 
+    // Calculate score
+    const baseScore = 1000;
+    const deathPenalty = this.deaths * 50;
+    const timeBonusMultiplier = Math.max(0, 20 - this.completionTime);
+    const timeBonus = Math.max(0, timeBonusMultiplier * 10);
+    const enemyBonus = this.enemiesDefeated * 100;
+    const totalScore = Math.max(0, baseScore - deathPenalty + timeBonus + enemyBonus);
+
     // Stats
     const stats = this.add.text(
       width / 2,
-      height / 2,
-      `Door ${this.door} - Stage ${this.stage}\n\nDeaths: ${this.deaths}\nTime: ${this.completionTime.toFixed(1)}s`,
+      height / 2.5,
+      `Door ${this.door} - Stage ${this.stage}\n\nDeaths: ${this.deaths}\nTime: ${this.completionTime.toFixed(1)}s\nEnemies Defeated: ${this.enemiesDefeated}\n\nSCORE: ${Math.floor(totalScore)}`,
       {
-        fontSize: '24px',
+        fontSize: '20px',
         color: '#ffffff',
+        fontFamily: 'monospace',
+        align: 'center',
+        lineSpacing: 8,
+      }
+    );
+    stats.setOrigin(0.5);
+
+    // Score breakdown (optional)
+    const breakdown = this.add.text(
+      width / 2,
+      height - 280,
+      `Base: ${baseScore} | Deaths: -${deathPenalty} | Time Bonus: +${Math.floor(timeBonus)} | Enemy Bonus: +${enemyBonus}`,
+      {
+        fontSize: '12px',
+        color: '#999999',
         fontFamily: 'monospace',
         align: 'center',
       }
     );
-    stats.setOrigin(0.5);
+    breakdown.setOrigin(0.5);
 
     // Next stage button
     const nextButton = this.add.text(width / 2, height - 150, 'NEXT STAGE', {
@@ -57,10 +82,12 @@ export class GameOverScene extends Phaser.Scene {
 
     nextButton.on('pointerover', () => {
       nextButton.setColor('#ffff00');
+      nextButton.setScale(1.1);
     });
 
     nextButton.on('pointerout', () => {
       nextButton.setColor('#00ff00');
+      nextButton.setScale(1);
     });
 
     nextButton.on('pointerdown', () => {
@@ -72,7 +99,7 @@ export class GameOverScene extends Phaser.Scene {
         nextDoor++;
       }
 
-      if (nextDoor > 16) {
+      if (nextDoor > 5) {
         // Game complete!
         this.scene.start('MenuScene');
       } else {
@@ -93,10 +120,12 @@ export class GameOverScene extends Phaser.Scene {
 
     menuButton.on('pointerover', () => {
       menuButton.setColor('#ffff00');
+      menuButton.setScale(1.1);
     });
 
     menuButton.on('pointerout', () => {
       menuButton.setColor('#ff0000');
+      menuButton.setScale(1);
     });
 
     menuButton.on('pointerdown', () => {
