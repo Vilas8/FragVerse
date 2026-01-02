@@ -51,7 +51,7 @@ export class PreloadScene extends Phaser.Scene {
       percentText.destroy();
     });
 
-    // Create player sprite (8x8 pixel red square for now)
+    // Create player sprite
     this.createPlayerSprite();
     
     // Create platform sprite
@@ -62,12 +62,23 @@ export class PreloadScene extends Phaser.Scene {
     
     // Create door sprite
     this.createDoorSprite();
+    
+    // Create enemy sprites
+    this.createEnemySprite();
+    
+    // Create powerup sprite
+    this.createPowerupSprite();
   }
 
   createPlayerSprite() {
     const graphics = this.add.graphics();
+    // Draw player as red rectangle
     graphics.fillStyle(0xff0000);
     graphics.fillRect(0, 0, 16, 16);
+    // Draw eyes
+    graphics.fillStyle(0xffffff);
+    graphics.fillRect(2, 4, 3, 3);
+    graphics.fillRect(10, 4, 3, 3);
     graphics.generateTexture('player', 16, 16);
     graphics.destroy();
   }
@@ -76,6 +87,9 @@ export class PreloadScene extends Phaser.Scene {
     const graphics = this.add.graphics();
     graphics.fillStyle(0x888888);
     graphics.fillRect(0, 0, 32, 32);
+    // Add texture detail
+    graphics.fillStyle(0x666666);
+    graphics.fillRect(0, 16, 32, 16);
     graphics.generateTexture('platform', 32, 32);
     graphics.destroy();
   }
@@ -96,12 +110,66 @@ export class PreloadScene extends Phaser.Scene {
 
   createDoorSprite() {
     const graphics = this.add.graphics();
+    // Door frame
     graphics.fillStyle(0x00ff00);
     graphics.fillRect(0, 0, 32, 48);
+    // Door interior
     graphics.fillStyle(0x008800);
     graphics.fillRect(4, 4, 24, 40);
+    // Door handle
+    graphics.fillStyle(0xffff00);
+    graphics.fillCircle(26, 24, 2);
     graphics.generateTexture('door', 32, 48);
     graphics.destroy();
+  }
+
+  createEnemySprite() {
+    const graphics = this.add.graphics();
+    // Draw enemy as purple rectangle with angry face
+    graphics.fillStyle(0xff00ff);
+    graphics.fillRect(0, 0, 16, 16);
+    // Eyes
+    graphics.fillStyle(0xffff00);
+    graphics.fillRect(2, 4, 3, 3);
+    graphics.fillRect(10, 4, 3, 3);
+    // Angry mouth
+    graphics.fillStyle(0xff0000);
+    graphics.fillRect(4, 11, 8, 2);
+    graphics.generateTexture('enemy', 16, 16);
+    graphics.destroy();
+  }
+
+  createPowerupSprite() {
+    const graphics = this.add.graphics();
+    // Draw star-shaped powerup
+    graphics.fillStyle(0xffff00);
+    const size = 12;
+    const points = this.createStarPoints(8, 8, 4, size, 2);
+    graphics.beginPath();
+    graphics.moveTo(points[0][0], points[0][1]);
+    for (let i = 1; i < points.length; i++) {
+      graphics.lineTo(points[i][0], points[i][1]);
+    }
+    graphics.closePath();
+    graphics.fillPath();
+    graphics.generateTexture('powerup', 16, 16);
+    graphics.destroy();
+  }
+
+  private createStarPoints(
+    cx: number,
+    cy: number,
+    spikes: number,
+    outerRadius: number,
+    innerRadius: number
+  ): number[][] {
+    const points: number[][] = [];
+    for (let i = 0; i < spikes * 2; i++) {
+      const radius = i % 2 === 0 ? outerRadius : innerRadius;
+      const angle = (i * Math.PI) / spikes - Math.PI / 2;
+      points.push([cx + radius * Math.cos(angle), cy + radius * Math.sin(angle)]);
+    }
+    return points;
   }
 
   create() {
