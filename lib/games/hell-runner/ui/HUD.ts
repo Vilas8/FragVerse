@@ -99,14 +99,7 @@ export class HUD {
    * Create HUD background with glassmorphism effect
    */
   private createHUDBackground(width: number, height: number): void {
-    this.hudBackground = this.scene.make.graphics(
-      {
-        x: 0,
-        y: 0,
-        add: true,
-      },
-      true
-    );
+    this.hudBackground = this.scene.add.graphics();
 
     // Top panel
     this.hudBackground.fillStyle(0x1a0f2e, 0.7);
@@ -183,7 +176,7 @@ export class HUD {
     const height = this.scene.cameras.main.height;
 
     // Semi-transparent overlay
-    const overlay = this.scene.make.graphics({ x: 0, y: 0, add: true });
+    const overlay = this.scene.add.graphics();
     overlay.fillStyle(0x000000, 0.7);
     overlay.fillRect(0, 0, width, height);
     overlay.setScrollFactor(0);
