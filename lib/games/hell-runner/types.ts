@@ -4,6 +4,14 @@ export interface LevelData {
   spikes: Array<{ x: number; y: number }>;
   enemies: Array<{ x: number; y: number; type: 'walker' | 'jumper' }>;
   powerups: Array<{ x: number; y: number; type: 'speed' | 'shield' | 'jump' }>;
+  obstacles: Array<{
+    x: number;
+    y: number;
+    type: 'disappearing' | 'saw' | 'popup-spike' | 'gravity-flip' | 'control-reverse' | 'fake-door' | 'teleport';
+    width?: number;
+    height?: number;
+    properties?: any;
+  }>;
   door: { x: number; y: number };
 }
 
