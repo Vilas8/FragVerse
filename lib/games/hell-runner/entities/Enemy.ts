@@ -8,10 +8,6 @@ export interface EnemyData {
   type: EnemyType;
 }
 
-export interface ArcadePhysicsBody extends Phaser.Physics.Arcade.Body {
-  touching?: { down?: boolean; up?: boolean; left?: boolean; right?: boolean };
-}
-
 export class Enemy {
   public sprite: Phaser.Physics.Arcade.Sprite;
   public type: EnemyType;
@@ -75,8 +71,9 @@ export class Enemy {
     this.jumpTimer += delta;
     
     if (this.jumpTimer >= this.jumpInterval) {
-      const body = this.sprite.body as ArcadePhysicsBody;
-      if (body && body.touching?.down) {
+      const body = this.sprite.body as Phaser.Physics.Arcade.Body;
+      // Check if touching ground using Phaser's built-in method
+      if (body && body.touching && body.touching.down) {
         this.sprite.setVelocityY(-300);
         this.jumpTimer = 0;
       }
