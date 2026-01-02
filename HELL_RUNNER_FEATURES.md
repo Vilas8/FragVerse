@@ -1,151 +1,257 @@
-# Hell Runner - Game Enhancement Features
+# Hell Runner - Complete Feature Documentation
 
-## Overview
+## 🎮 PHASE 2 UPDATE: TROLL MECHANICS LIVE!
 
-Hell Runner is a fast-paced platformer game with dynamic enemy AI, power-up system, and progressive difficulty. Escape through increasingly challenging levels while managing health, speed, and avoiding hazards.
+**Last Updated:** January 2, 2026 9:35 PM IST
+**Version:** 2.1 (MEGA CHAOS UPDATE)
 
-## Recent Updates (January 2, 2026)
+---
 
-### ✨ New Features Added
+## 📊 Game Structure
 
-#### 1. **Enemy AI System**
-- **Walker Enemies**: Patrol platforms left and right, simple movement
-  - Speed: 100 px/s
-  - Patrol range: 150px from spawn point
-  - Can be defeated if player has shield
-  
-- **Jumper Enemies**: More advanced AI that jumps periodically
-  - Speed: 80 px/s
-  - Jump interval: Every 1.5 seconds
-  - Patrol range: 150px from spawn point
-  - Adds dynamic challenge to levels
+### Current Implementation
+- **Doors:** 1-8 (40 levels)
+- **Stages per Door:** 5
+- **Total Levels:** 40 playable levels
+- **Difficulty:** Progressive (Doors 1-2 beginner, Doors 3-8 troll chaos)
 
-#### 2. **Power-Up System**
-Three types of power-ups with different effects:
+---
 
-**Speed Boost** (Green) 🟢
-- Increases movement speed by 1.5x
-- Duration: 8 seconds
-- Useful for quick escapes or covering long distances
+## 🚀 Phase 1 Features (Complete)
 
-**Shield** (Blue) 🔵
-- Absorbs one hit from spikes or enemies
-- Duration: 10 seconds
-- Breaks on impact (visual feedback with orange tint)
-- Can defeat enemies when shield is active
+### Enemy AI System ✅
+- **Walker Enemies** (100 px/s patrol)
+- **Jumper Enemies** (80 px/s with 1.5s jump intervals)
+- Enemy defeat tracking
+- Shield interaction system
 
-**Double Jump** (Yellow) 🟡
-- Enables double jumping (NOT YET FULLY IMPLEMENTED)
-- Duration: 6 seconds
-- Future enhancement for aerial mobility
+### Power-Up System ✅
+- **Speed Boost** (Green) - 1.5x speed for 8s
+- **Shield** (Blue) - 1 hit protection for 10s
+- **Double Jump** (Yellow) - 6s duration
+- Duration display UI
+- Floating/rotating animations
 
-#### 3. **Scoring System**
-Dynamic score calculation based on:
+### Scoring System ✅
 ```
-Final Score = Base (1000) - (Deaths × 50) + Time Bonus + Enemy Bonus
-
-Time Bonus: max(0, (20 - Time_Taken) × 10)
-Enemy Bonus: Enemies_Defeated × 100
+Final Score = 1000 - (Deaths × 50) + Time Bonus + Enemy Bonus
+Time Bonus = max(0, (20 - Time_Taken) × 10)
+Enemy Bonus = Enemies_Defeated × 100
 ```
 
-#### 4. **Enhanced Level Design**
-Each level now includes:
-- Strategic platform placement
-- Enemy spawning with varied AI types
-- Power-up placement
-- Spike traps and hazards
-- Difficulty scaling per door/stage
+---
 
-**Level Progression:**
-- **Door 1**: Tutorial levels (5 stages)
-  - Stage 1: Simple platforming with speed boost
-  - Stage 2: Spike hazards with jump enhancement
-  - Stage 3: Elevated platforms with first enemy
-  - Stage 4: Long jumps with speed boost
-  - Stage 5: Multiple enemies and shields
+## 🔥 PHASE 2: TROLL MECHANICS (COMPLETE!)
 
-- **Door 2**: Intermediate challenges (5 stages)
-  - Stage 1: Spikes on platforms with enemies
-  - Stage 2: Spike walls and jumper enemies
-  - Stage 3: Narrow passages
-  - Stage 4: Spike clusters with jumper enemies
-  - Stage 5: Boss stage with 3 enemies and 2 shields
+### Door 3: Disappearing Platforms ⏰
+**Concept:** Platforms fade in and out on timed cycles
 
-- **Door 3+**: Procedurally generated levels
-  - Difficulty scales with door and stage number
-  - Random enemy placement
-  - Multiple power-up opportunities
+Features:
+- Configurable disappear/reappear delays
+- Visual feedback (transparency change)
+- Staggered timing per platform
+- Stage progression: 2 → 4 → 6 → 8 → 10+ platforms
 
-#### 5. **Visual Improvements**
-- **Sprite Updates**:
-  - Player: Red rectangle with white eyes
-  - Enemies: Purple with yellow eyes and angry mouth
-  - Powerups: Yellow rotating star with floating animation
-  - Platforms: Gray with shading detail
-  - Spikes: Orange triangles
-  - Door: Green with yellow handle
+**Example Timings:**
+```
+Stage 1: 1500ms disappear, 1500ms reappear
+Stage 2: Varied timings (1000-2000ms range)
+Stage 5: Quick fades (500-1000ms disappear, 600-1500ms reappear)
+```
 
-- **Animations**:
-  - Power-up floating and rotation
-  - Enemy sprite flipping based on direction
-  - Shield break effect (orange tint)
-  - Flash on damage/power-up collection
+### Door 4: Saw Blades & Popup Spikes ⚡
+**Concept:** Moving hazards and hidden spikes that appear on landing
 
-#### 6. **UI Enhancements**
-- Real-time power-up display showing:
-  - Active power-up types
-  - Remaining duration for each
-  - Format: "Powerups: speed(7.5s) shield(9.2s)"
-  - Clears when no power-ups active
+**Saw Blades:**
+- Speed: 80-150 px/s
+- Rotates continuously
+- Bounces at boundaries
+- Kills on contact (unless shielded)
 
-- Death counter with red text
-- Timer with green text
-- Level indicator
-- Score calculation display with breakdown
+**Popup Spikes:**
+- Hidden until timer triggers
+- Visible duration: 800-1200ms
+- Popup delay: 1200-2000ms
+- Same death mechanics as saw blades
 
-#### 7. **Game Mechanics**
+### Door 5: Gravity Flip & Control Reverse 🎛️
+**Concept:** Environmental hazard zones that alter game physics
 
-**Collision System:**
-- Player collides with platforms (for jumping)
-- Spikes: Instant death OR shield absorption
-- Enemies: Same as spikes when shield inactive
-- Door: Level completion trigger
+**Gravity Flip Zone:**
+- Reverses gravity (upside-down platforming)
+- Visual indicator: Cyan tint on player
+- Player can jump down (becomes up)
+- Can toggle multiple times
 
-**Movement System:**
-- Base speed: 200 px/s (can be boosted to 300 px/s)
-- Jump velocity: -400 px/s (upward)
-- Gravity: 1000 px/s² (downward)
-- World bounds collision
+**Control Reverse Zone:**
+- Left becomes right, right becomes left
+- Visual indicator: Magenta tint on player
+- Confuses player navigation
+- Requires adaptation and timing
 
-**Mobile Controls:**
-- Left/Right movement buttons (red)
-- Jump button (green, larger)
-- Touch-responsive with visual feedback
+### Door 6: Fake Doors & Teleports 🌀
+**Concept:** Portal mechanics that transport or kill
 
-## Technical Implementation
+**Fake Doors:**
+- Look like real doors (green)
+- Kill on contact instead of exiting
+- Visual indicator: Reddish tint (if you look close)
+- Mixed with real teleports
 
-### New Files Added
+**Teleport Warps:**
+- Blue pulsing portals
+- Transport player to destination
+- Can chain multiple teleports
+- Used for level shortcuts
 
+### Door 7: Chaos Remix 🌪️
+**Concept:** Mixed mechanics from Doors 3-6
+
+Includes:
+- Disappearing platforms + Saws
+- Gravity flip + Popup spikes
+- Control reverse + Teleports
+- Fake doors mixed in
+- Increasing complexity per stage
+
+### Door 8: MEGA CHAOS 💥
+**Concept:** Everything at once - ultimate difficulty
+
+Stages get progressively insane:
+- **Stage 1:** 3x disappearing, 2x saws, gravity flip, teleport
+- **Stage 2:** Previous + enemies
+- **Stage 3:** Previous + control reverse
+- **Stage 4:** Previous + popup spikes
+- **Stage 5:** EVERYTHING + multiple of each obstacle type
+
+---
+
+## 🎨 Visual Design
+
+### Sprite System (Procedurally Generated)
+
+**Player:** Red rectangle with white eyes
+- Normal: Red
+- Shield active: Blue tint
+- Speed boost: Green tint  
+- Gravity flipped: Cyan tint
+- Controls reversed: Magenta tint
+
+**Obstacles:**
+- **Platform:** Gray with darker shading (32×32)
+- **Spike:** Orange triangle (32×32)
+- **Enemy:** Purple with yellow eyes and angry mouth (16×16)
+- **Powerup:** Yellow rotating star (16×16)
+- **Saw Blade:** Yellow circle with orange teeth (16×16)
+- **Teleport:** Blue pulsing portal with cyan core (16×16)
+- **Disappearing:** Gray platform with reduced opacity when invisible
+- **Gravity Flip Zone:** Cyan rectangle (128×32)
+- **Control Reverse:** Magenta rectangle (128×32)
+
+### Animations
+- Player tinting for status effects
+- Saw blade continuous rotation
+- Powerup floating + rotation
+- Teleport pulsing (sine wave alpha)
+- Platform fade in/out transitions
+- Enemy sprite flipping based on direction
+
+---
+
+## 🎮 Gameplay Mechanics
+
+### Physics
+- **Base Gravity:** 1000 px/s² (flippable)
+- **Base Speed:** 200 px/s (boostable to 300)
+- **Jump Velocity:** 400 px/s (upward)
+- **Gravity Flip:** Reverses to -1000 px/s²
+
+### Control Systems
+- **Keyboard:** Arrow keys + WASD
+- **Mobile:** Touch buttons (Left, Right, Jump)
+- **Control Reverse:** Swaps left/right input
+- **Gravity Flip:** Reverses jump direction
+
+### Collision System
+- Player → Platform: Collision (enables jumping)
+- Player → Spike/Saw: Death or shield break
+- Player → Enemy: Death or shield break + enemy defeat
+- Player → Disappearing Platform: Collision (when visible)
+- Player → Gravity Flip: Toggle gravity (overlap)
+- Player → Control Reverse: Toggle controls (overlap)
+- Player → Fake Door: Death
+- Player → Teleport: Instant transport (overlap)
+
+---
+
+## 📈 Level Progression
+
+### Difficulty Scaling
+```
+Door 1 (Tutorial):
+  Stage 1-2: Basic platforming
+  Stage 3-4: Introduce spikes & jumping
+  Stage 5: First enemies
+
+Door 2 (Intermediate):
+  Stage 1-2: Spike complexity
+  Stage 3-4: More enemies
+  Stage 5: Boss (3 enemies + shields)
+
+Door 3 (Disappearing - Hard):
+  Stage 1-2: 2-3 disappearing platforms
+  Stage 3-4: 4-6 platforms with pattern
+  Stage 5: 5 platforms + 2 enemies
+
+Door 4 (Saws - Harder):
+  Stage 1-2: Single saw
+  Stage 3-4: Multiple saws + spikes
+  Stage 5: Chaos (3 saws + enemies)
+
+Door 5 (Gravity/Controls - Very Hard):
+  Stage 1-2: Single gravity flip
+  Stage 3-4: Control reverse introduction
+  Stage 5: Both + enemies
+
+Door 6 (Portals - Extreme):
+  Stage 1-2: Safe teleports
+  Stage 3-4: Fake doors introduced
+  Stage 5: Mixed portals + enemies
+
+Door 7 (Mixed - Insane):
+  Stage 1-5: Combination of 3-6 mechanics
+
+Door 8 (CHAOS - BRUTAL):
+  Stage 1-5: Everything + scaling difficulty
+```
+
+---
+
+## 💻 Technical Architecture
+
+### File Structure
 ```
 lib/games/hell-runner/
-├── types.ts                          # TypeScript interfaces
+├── types.ts                    # Type definitions
+├── db-actions.ts              # Database operations (future)
 ├── entities/
-│   ├── Enemy.ts                      # Enemy AI class
-│   └── Powerup.ts                    # Powerup system
+│   ├── Enemy.ts              # Enemy AI class
+│   ├── Powerup.ts            # Power-up system
+│   └── Obstacle.ts           # Troll mechanics
 ├── levels/
-│   └── LevelGenerator.ts             # Enhanced with enemies/powerups
+│   └── LevelGenerator.ts     # 40 level configurations
 └── scenes/
-    ├── MainScene.ts                  # Full game logic
-    ├── GameOverScene.ts              # Score calculation
-    └── PreloadScene.ts               # Sprite generation
+    ├── PreloadScene.ts       # Sprite generation
+    ├── MenuScene.ts          # Main menu
+    ├── MainScene.ts          # Game logic
+    └── GameOverScene.ts      # Score display
 ```
 
-### Key Classes
+### Core Classes
 
-#### `Enemy`
+**Enemy**
 ```typescript
 class Enemy {
-  sprite: Phaser.Physics.Arcade.Sprite
   type: 'walker' | 'jumper'
   update(delta: number): void
   dealDamage(): void
@@ -153,74 +259,107 @@ class Enemy {
 }
 ```
 
-#### `Powerup`
+**Powerup**
 ```typescript
 class Powerup {
-  sprite: Phaser.Physics.Arcade.Sprite
   type: 'speed' | 'shield' | 'jump'
   collect(): PowerupEffect
   update(): void
 }
 ```
 
-#### `PowerupManager`
+**Obstacle**
 ```typescript
-class PowerupManager {
-  applyPowerup(effect: PowerupEffect): void
-  update(currentTime: number): void
-  getSpeedMultiplier(): number
-  hasActiveShield(): boolean
-  getRemainingTime(type: PowerupType): number
+class Obstacle {
+  type: 'disappearing' | 'saw' | 'popup-spike' | 
+        'gravity-flip' | 'control-reverse' | 
+        'fake-door' | 'teleport'
+  update(delta: number): void
+  getDestination(): { x, y } | null
 }
 ```
-
-## Gameplay Tips
-
-1. **Speed Boost**: Use it to cross long spike fields quickly
-2. **Shield**: Save it for boss stages with multiple enemies
-3. **Timing**: Enemies follow predictable patrol patterns
-4. **Score**: Focus on speed completion for higher scores
-5. **Enemies**: Walkers are easier; avoid jumpers when shieldless
-
-## Future Enhancements
-
-- [ ] Implement Double Jump power-up fully
-- [ ] Add sound effects and music
-- [ ] Implement high score leaderboard
-- [ ] Add particle effects
-- [ ] Create additional enemy types (flying, stationary)
-- [ ] Add boss encounters
-- [ ] Implement level editor
-- [ ] Add achievements system
-- [ ] Create power-up combinations
-- [ ] Add slow-motion power-up
-
-## Performance Notes
-
-- Sprites are generated procedurally (no image assets required)
-- Supports up to 10+ enemies per level
-- Physics calculations optimized with arcade physics
-- Mobile-friendly with responsive controls
-- Tested on 800x600 viewport
-
-## Debugging
-
-To enable physics debug mode, modify `MainScene` create method:
-```typescript
-arcade: {
-  gravity: { y: 1000, x: 0 },
-  debug: true,  // Set to true for debug visualization
-}
-```
-
-## Credits
-
-Developed using:
-- [Phaser 3](https://phaser.io/) - Game framework
-- [TypeScript](https://www.typescriptlang.org/) - Language
-- [Next.js](https://nextjs.org/) - React framework
 
 ---
 
-**Last Updated:** January 2, 2026
-**Version:** 2.0 (Enhanced with AI and Power-ups)
+## 🎯 Gameplay Tips
+
+### By Door
+**Door 1-2:** Learn timing and enemy patterns  
+**Door 3:** Memorize platform cycles or jump quickly  
+**Door 4:** Use shield for saw blades, predict movement  
+**Door 5:** Anticipate gravity/control changes, adapt quickly  
+**Door 6:** Identify fake doors, use teleports strategically  
+**Door 7:** Combine knowledge from all mechanics  
+**Door 8:** Perfect execution required, expect failure  
+
+### Pro Tips
+- Shields are precious - save for hardest segments
+- Speed boost great for long spike fields
+- Gravity flip makes upside-down platforming easier with practice
+- Teleports can skip hard sections
+- Fake doors often placed near real doors - be suspicious
+
+---
+
+## 📋 Coming Soon (Phase 3-4)
+
+### Phase 3: Advanced Trolls (Doors 9-16)
+- [ ] Auto-scroll hell sections
+- [ ] Wraparound screens
+- [ ] Moving laser walls
+- [ ] Boss encounters
+- [ ] Secret passages
+- [ ] Purple key system
+
+### Phase 4: Pro Polish
+- [ ] Sound effects & music
+- [ ] Particle effects
+- [ ] Leaderboards (Supabase)
+- [ ] Achievements system
+- [ ] Save progress
+- [ ] Settings menu
+- [ ] Better graphics
+
+---
+
+## 🚨 Known Limitations
+
+- No persistence between sessions (yet)
+- No sound (yet)
+- Limited to 8 doors currently
+- No mobile app (web only)
+- Physics may feel floaty on some machines
+
+---
+
+## 🎮 Testing Checklist
+
+- [x] Enemy patrolling
+- [x] Power-up collection
+- [x] Shield mechanics
+- [x] Disappearing platforms
+- [x] Saw blade movement
+- [x] Popup spike timing
+- [x] Gravity flip toggle
+- [x] Control reverse toggle
+- [x] Fake door detection
+- [x] Teleport transportation
+- [x] Score calculation
+- [x] Mobile controls
+- [x] Level progression
+
+---
+
+## 📞 Credits
+
+**Built with:**
+- Phaser 3 (Game Framework)
+- TypeScript (Language)
+- Next.js (React Framework)
+- Arcade Physics Engine
+
+**Inspired by:** Super Meat Boy, I Am Bread, Getting Over It
+
+---
+
+**Ready for Phase 3? Let's add even more chaos! 🔥**
