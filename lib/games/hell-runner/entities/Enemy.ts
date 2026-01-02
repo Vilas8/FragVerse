@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 
 export type EnemyType = 'walker' | 'jumper';
 
@@ -6,6 +6,10 @@ export interface EnemyData {
   x: number;
   y: number;
   type: EnemyType;
+}
+
+export interface ArcadePhysicsBody extends Phaser.Physics.Arcade.Body {
+  touching?: { down?: boolean; up?: boolean; left?: boolean; right?: boolean };
 }
 
 export class Enemy {
@@ -71,7 +75,8 @@ export class Enemy {
     this.jumpTimer += delta;
     
     if (this.jumpTimer >= this.jumpInterval) {
-      if (this.sprite.body && (this.sprite.body as any).touching?.down) {
+      const body = this.sprite.body as ArcadePhysicsBody;
+      if (body && body.touching?.down) {
         this.sprite.setVelocityY(-300);
         this.jumpTimer = 0;
       }
