@@ -129,14 +129,14 @@ export class Obstacle {
       this.sprite.setAlpha(1);
       const body = this.sprite.body as Phaser.Physics.Arcade.Body;
       if (body && 'enable' in body) {
-        (body as Record<string, unknown>)['enable'] = true;
+        (body as unknown as Record<string, unknown>)['enable'] = true;
       }
     } else {
       // Invisible and non-collidable
       this.sprite.setAlpha(0.2);
       const body = this.sprite.body as Phaser.Physics.Arcade.Body;
       if (body && 'enable' in body) {
-        (body as Record<string, unknown>)['enable'] = false;
+        (body as unknown as Record<string, unknown>)['enable'] = false;
       }
     }
   }
@@ -161,14 +161,14 @@ export class Obstacle {
       this.sprite.setAlpha(0.1);
       const body = this.sprite.body as Phaser.Physics.Arcade.Body;
       if (body && 'enable' in body) {
-        (body as Record<string, unknown>)['enable'] = false;
+        (body as unknown as Record<string, unknown>)['enable'] = false;
       }
     } else {
       // Visible and active
       this.sprite.setAlpha(1);
       const body = this.sprite.body as Phaser.Physics.Arcade.Body;
       if (body && 'enable' in body) {
-        (body as Record<string, unknown>)['enable'] = true;
+        (body as unknown as Record<string, unknown>)['enable'] = true;
       }
     }
   }
