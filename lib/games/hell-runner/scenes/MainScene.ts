@@ -1,12 +1,8 @@
 import Phaser from 'phaser';
 import { createLevel } from '../levels/LevelGenerator';
-
-interface LevelData {
-  spawnPoint: { x: number; y: number };
-  platforms: Array<{ x: number; y: number; width: number; height: number }>;
-  spikes: Array<{ x: number; y: number }>;
-  door: { x: number; y: number };
-}
+import { Enemy } from '../entities/Enemy';
+import { Powerup, PowerupManager } from '../entities/Powerup';
+import { LevelData } from '../types';
 
 interface PlatformData {
   x: number;
@@ -37,15 +33,26 @@ export class MainScene extends Phaser.Scene {
   private deathText!: Phaser.GameObjects.Text;
   private timerText!: Phaser.GameObjects.Text;
   private levelText!: Phaser.GameObjects.Text;
+  private powerupText!: Phaser.GameObjects.Text;
   private currentDoor = 1;
   private currentStage = 1;
   private spawnPoint = { x: 50, y: 500 };
+  
+  // Enemy and powerup management
+  private enemies: Enemy[] = [];
+  private powerups: Powerup[] = [];
+  private powerupManager: PowerupManager = new PowerupManager();
+  private enemiesDefeated = 0;
   
   // Mobile controls
   private leftButton?: Phaser.GameObjects.Rectangle;
   private rightButton?: Phaser.GameObjects.Rectangle;
   private jumpButton?: Phaser.GameObjects.Rectangle;
   private mobileControls = { left: false, right: false, jump: false };
+  
+  // Game state
+  private canDoubleJump = false;
+  private hasShield = false;
 
   constructor() {
     super({ key: 'MainScene' });
@@ -55,7 +62,9 @@ export class MainScene extends Phaser.Scene {
     this.currentDoor = data.door || 1;
     this.currentStage = data.stage || 1;
     this.deaths = 0;
+    this.enemiesDefeated = 0;
     this.startTime = Date.now();
+    this.powerupManager.clear();
   }
 
   create() {
@@ -78,6 +87,16 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.platforms);
     this.physics.add.overlap(this.player, this.spikes, this.hitSpike, undefined, this);
     this.physics.add.overlap(this.player, this.door, this.reachDoor, undefined, this);
+    
+    // Powerup collection
+    this.powerups.forEach((powerup) => {
+      this.physics.add.overlap(this.player, powerup.sprite, () => this.collectPowerup(powerup), undefined, this);
+    });
+    
+    // Enemy collision
+    this.enemies.forEach((enemy) => {
+      this.physics.add.overlap(this.player, enemy.sprite, () => this.hitEnemy(enemy), undefined, this);
+    });
 
     // Keyboard controls
     this.cursors = this.input.keyboard!.createCursorKeys();
@@ -125,12 +144,25 @@ export class MainScene extends Phaser.Scene {
     );
     this.levelText.setOrigin(0.5, 0);
     this.levelText.setScrollFactor(0);
+    
+    this.powerupText = this.add.text(16, 50, '', {
+      fontSize: '14px',
+      color: '#ffff00',
+      fontFamily: 'monospace',
+      backgroundColor: '#000000',
+      padding: { x: 8, y: 4 },
+    });
+    this.powerupText.setScrollFactor(0);
   }
 
   loadLevel(level: LevelData) {
     // Clear existing level
     this.platforms.clear(true, true);
     this.spikes.clear(true, true);
+    this.enemies.forEach((enemy) => enemy.destroy());
+    this.enemies = [];
+    this.powerups.forEach((powerup) => powerup.destroy());
+    this.powerups = [];
 
     // Set spawn point
     this.spawnPoint = level.spawnPoint;
@@ -145,6 +177,20 @@ export class MainScene extends Phaser.Scene {
     // Create spikes
     level.spikes.forEach((spike: SpikeData) => {
       this.spikes.create(spike.x, spike.y, 'spike');
+    });
+    
+    // Create enemies
+    level.enemies.forEach((enemyData) => {
+      const enemy = new Enemy(this, enemyData.x, enemyData.y, enemyData.type, 'enemy');
+      this.enemies.push(enemy);
+      this.physics.add.overlap(this.player, enemy.sprite, () => this.hitEnemy(enemy), undefined, this);
+    });
+    
+    // Create powerups
+    level.powerups.forEach((powerupData) => {
+      const powerup = new Powerup(this, powerupData.x, powerupData.y, powerupData.type, 'powerup');
+      this.powerups.push(powerup);
+      this.physics.add.overlap(this.player, powerup.sprite, () => this.collectPowerup(powerup), undefined, this);
     });
 
     // Create door
@@ -230,8 +276,41 @@ export class MainScene extends Phaser.Scene {
     const elapsed = (Date.now() - this.startTime) / 1000;
     this.timerText.setText(`Time: ${elapsed.toFixed(1)}s`);
 
+    // Update enemies
+    this.enemies.forEach((enemy) => {
+      if (enemy.isActive()) {
+        enemy.update(this.game.loop.delta);
+      }
+    });
+    
+    // Update powerups
+    this.powerups.forEach((powerup) => {
+      if (!powerup.collected) {
+        powerup.update();
+      }
+    });
+    
+    // Update powerup effects
+    this.powerupManager.update(Date.now());
+    this.hasShield = this.powerupManager.hasActiveShield();
+    this.canDoubleJump = this.powerupManager.canDoubleJumpNow();
+    
+    // Update powerup display
+    const activePowerups = this.powerupManager.getActivePowerups();
+    let powerupDisplay = 'Powerups: ';
+    if (activePowerups.length === 0) {
+      powerupDisplay += 'None';
+    } else {
+      powerupDisplay += activePowerups.map((p) => {
+        const remaining = (this.powerupManager.getRemainingTime(p) / 1000).toFixed(1);
+        return `${p}(${remaining}s)`;
+      }).join(' ');
+    }
+    this.powerupText.setText(powerupDisplay);
+
     // Movement
-    const speed = 200;
+    const baseSpeed = 200;
+    const speed = baseSpeed * this.powerupManager.getSpeedMultiplier();
     const jumpVelocity = -400;
 
     const left = this.cursors.left.isDown || this.wasd.left.isDown || this.mobileControls.left;
@@ -257,7 +336,40 @@ export class MainScene extends Phaser.Scene {
   }
 
   hitSpike() {
-    this.die();
+    if (this.hasShield) {
+      this.powerupManager.useShield();
+      this.player.setTint(0xffaa00); // Orange tint when shield breaks
+      this.time.delayedCall(200, () => {
+        this.player.clearTint();
+      });
+    } else {
+      this.die();
+    }
+  }
+  
+  hitEnemy(enemy: Enemy) {
+    if (this.hasShield) {
+      this.powerupManager.useShield();
+      enemy.dealDamage();
+      this.enemiesDefeated++;
+      this.player.setTint(0xffaa00);
+      this.time.delayedCall(200, () => {
+        this.player.clearTint();
+      });
+    } else {
+      this.die();
+    }
+  }
+  
+  collectPowerup(powerup: Powerup) {
+    const effect = powerup.collect();
+    this.powerupManager.applyPowerup(effect);
+    
+    // Visual feedback
+    this.player.setTint(0xffff00);
+    this.time.delayedCall(100, () => {
+      this.player.clearTint();
+    });
   }
 
   die() {
@@ -281,6 +393,7 @@ export class MainScene extends Phaser.Scene {
       stage: this.currentStage,
       deaths: this.deaths,
       time: timeElapsed,
+      enemiesDefeated: this.enemiesDefeated,
     });
   }
 }
