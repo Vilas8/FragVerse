@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import { createLevel } from '../levels/LevelGenerator';
 import { Enemy } from '../entities/Enemy';
 import { Powerup, PowerupManager } from '../entities/Powerup';
