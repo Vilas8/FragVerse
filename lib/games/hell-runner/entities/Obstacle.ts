@@ -3,10 +3,6 @@ import { ObstacleProperties } from '../types';
 
 export type ObstacleType = 'disappearing' | 'saw' | 'popup-spike' | 'gravity-flip' | 'control-reverse' | 'fake-door' | 'teleport';
 
-export interface ArcadePhysicsBody extends Phaser.Physics.Arcade.Body {
-  enable?: boolean;
-}
-
 export interface ObstacleData {
   x: number;
   y: number;
@@ -131,13 +127,17 @@ export class Obstacle {
     if (cycleProgress < disappearDelay) {
       // Visible
       this.sprite.setAlpha(1);
-      const body = this.sprite.body as ArcadePhysicsBody;
-      if (body) body.enable = true;
+      const body = this.sprite.body as Phaser.Physics.Arcade.Body;
+      if (body && 'enable' in body) {
+        (body as Record<string, unknown>)['enable'] = true;
+      }
     } else {
       // Invisible and non-collidable
       this.sprite.setAlpha(0.2);
-      const body = this.sprite.body as ArcadePhysicsBody;
-      if (body) body.enable = false;
+      const body = this.sprite.body as Phaser.Physics.Arcade.Body;
+      if (body && 'enable' in body) {
+        (body as Record<string, unknown>)['enable'] = false;
+      }
     }
   }
 
@@ -159,13 +159,17 @@ export class Obstacle {
     if (cycleProgress < popupDelay) {
       // Hidden
       this.sprite.setAlpha(0.1);
-      const body = this.sprite.body as ArcadePhysicsBody;
-      if (body) body.enable = false;
+      const body = this.sprite.body as Phaser.Physics.Arcade.Body;
+      if (body && 'enable' in body) {
+        (body as Record<string, unknown>)['enable'] = false;
+      }
     } else {
       // Visible and active
       this.sprite.setAlpha(1);
-      const body = this.sprite.body as ArcadePhysicsBody;
-      if (body) body.enable = true;
+      const body = this.sprite.body as Phaser.Physics.Arcade.Body;
+      if (body && 'enable' in body) {
+        (body as Record<string, unknown>)['enable'] = true;
+      }
     }
   }
 
