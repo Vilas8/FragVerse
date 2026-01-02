@@ -1,4 +1,8 @@
 import * as Phaser from 'phaser';
+import { ScoreManager } from '../ui/ScoreManager';
+import { AchievementSystem } from '../ui/AchievementSystem';
+import { THEME } from '../config/colors';
+import { DifficultyLevel } from '../config/difficulty';
 
 export class GameOverScene extends Phaser.Scene {
   private door!: number;
@@ -6,87 +10,177 @@ export class GameOverScene extends Phaser.Scene {
   private deaths!: number;
   private completionTime!: number;
   private enemiesDefeated!: number;
+  private difficulty!: DifficultyLevel;
+  private finalScore!: number;
+  private unlockedAchievements!: string[];
+  private scoreManager!: ScoreManager;
+  private achievementSystem!: AchievementSystem;
 
   constructor() {
     super({ key: 'GameOverScene' });
   }
 
-  init(data: { door: number; stage: number; deaths: number; time: number; enemiesDefeated?: number }) {
+  init(data: {
+    door: number;
+    stage: number;
+    deaths: number;
+    time: number;
+    enemiesDefeated?: number;
+    difficulty?: DifficultyLevel;
+    score?: number;
+    achievements?: string[];
+  }) {
     this.door = data.door;
     this.stage = data.stage;
     this.deaths = data.deaths;
     this.completionTime = data.time;
     this.enemiesDefeated = data.enemiesDefeated || 0;
+    this.difficulty = data.difficulty || 'normal';
+    this.finalScore = data.score || 0;
+    this.unlockedAchievements = data.achievements || [];
   }
 
   create() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
+    // Set modern background
+    this.cameras.main.setBackgroundColor(THEME.background);
+
+    // Initialize systems
+    this.scoreManager = new ScoreManager();
+    this.achievementSystem = new AchievementSystem();
+
     // Title
-    const title = this.add.text(width / 2, height / 5, 'STAGE COMPLETE!', {
+    const title = this.add.text(width / 2, 60, 'STAGE COMPLETE!', {
       fontSize: '48px',
-      color: '#00ff00',
+      color: THEME.cyan,
       fontFamily: 'monospace',
       fontStyle: 'bold',
+      align: 'center',
     });
     title.setOrigin(0.5);
 
-    // Calculate score
-    const baseScore = 1000;
-    const deathPenalty = this.deaths * 50;
-    const timeBonusMultiplier = Math.max(0, 20 - this.completionTime);
-    const timeBonus = Math.max(0, timeBonusMultiplier * 10);
-    const enemyBonus = this.enemiesDefeated * 100;
-    const totalScore = Math.max(0, baseScore - deathPenalty + timeBonus + enemyBonus);
+    // Level indicator
+    const levelText = this.add.text(width / 2, 130, `Door ${this.door} - Stage ${this.stage}`, {
+      fontSize: '24px',
+      color: THEME.text,
+      fontFamily: 'monospace',
+      align: 'center',
+    });
+    levelText.setOrigin(0.5);
 
-    // Stats
-    const stats = this.add.text(
+    // Stats display
+    let statsY = 190;
+    const stats = [
+      { label: 'Deaths:', value: this.deaths.toString(), color: THEME.danger },
+      { label: 'Time:', value: `${this.completionTime.toFixed(1)}s`, color: THEME.green },
+      { label: 'Enemies Defeated:', value: this.enemiesDefeated.toString(), color: THEME.pink },
+      { label: 'Difficulty:', value: this.difficulty.toUpperCase(), color: THEME.orange },
+    ];
+
+    stats.forEach((stat) => {
+      const text = this.add.text(
+        width / 2,
+        statsY,
+        `${stat.label} ${stat.value}`,
+        {
+          fontSize: '18px',
+          color: stat.color,
+          fontFamily: 'monospace',
+          align: 'center',
+        }
+      );
+      text.setOrigin(0.5);
+      statsY += 40;
+    });
+
+    // Score display (prominent)
+    statsY += 20;
+    const scoreText = this.add.text(
       width / 2,
-      height / 2.5,
-      `Door ${this.door} - Stage ${this.stage}\n\nDeaths: ${this.deaths}\nTime: ${this.completionTime.toFixed(1)}s\nEnemies Defeated: ${this.enemiesDefeated}\n\nSCORE: ${Math.floor(totalScore)}`,
+      statsY,
+      `SCORE: ${this.scoreManager.formatScore(this.finalScore)}`,
       {
-        fontSize: '20px',
-        color: '#ffffff',
+        fontSize: '32px',
+        color: THEME.cyan,
         fontFamily: 'monospace',
+        fontStyle: 'bold',
         align: 'center',
-        lineSpacing: 8,
+        backgroundColor: THEME.primary,
+        padding: { x: 30, y: 15 },
       }
     );
-    stats.setOrigin(0.5);
+    scoreText.setOrigin(0.5);
 
-    // Score breakdown (optional)
-    const breakdown = this.add.text(
-      width / 2,
-      height - 280,
-      `Base: ${baseScore} | Deaths: -${deathPenalty} | Time Bonus: +${Math.floor(timeBonus)} | Enemy Bonus: +${enemyBonus}`,
-      {
-        fontSize: '12px',
-        color: '#999999',
-        fontFamily: 'monospace',
-        align: 'center',
-      }
-    );
-    breakdown.setOrigin(0.5);
+    // Achievements display
+    if (this.unlockedAchievements.length > 0) {
+      statsY += 80;
+      const achievementsTitle = this.add.text(
+        width / 2,
+        statsY,
+        'ACHIEVEMENTS UNLOCKED!',
+        {
+          fontSize: '20px',
+          color: THEME.green,
+          fontFamily: 'monospace',
+          fontStyle: 'bold',
+          align: 'center',
+        }
+      );
+      achievementsTitle.setOrigin(0.5);
+
+      statsY += 50;
+      this.unlockedAchievements.forEach((achievementId) => {
+        const achievement = this.achievementSystem.getAchievement(achievementId as any);
+        if (achievement) {
+          const achievementText = this.add.text(
+            width / 2,
+            statsY,
+            `${achievement.icon} ${achievement.name} (+${achievement.points}pts)`,
+            {
+              fontSize: '16px',
+              color: THEME.green,
+              fontFamily: 'monospace',
+              align: 'center',
+              backgroundColor: THEME.primary,
+              padding: { x: 15, y: 8 },
+            }
+          );
+          achievementText.setOrigin(0.5);
+          statsY += 40;
+        }
+      });
+    }
+
+    // Buttons
+    const buttonY = height - 120;
+    const buttonSpacing = 220;
 
     // Next stage button
-    const nextButton = this.add.text(width / 2, height - 150, 'NEXT STAGE', {
-      fontSize: '32px',
-      color: '#00ff00',
-      fontFamily: 'monospace',
-      backgroundColor: '#003300',
-      padding: { x: 20, y: 10 },
-    });
+    const nextButton = this.add.text(
+      width / 2 - buttonSpacing / 2,
+      buttonY,
+      'NEXT STAGE',
+      {
+        fontSize: '24px',
+        color: THEME.text,
+        fontFamily: 'monospace',
+        fontStyle: 'bold',
+        backgroundColor: THEME.primary,
+        padding: { x: 25, y: 12 },
+      }
+    );
     nextButton.setOrigin(0.5);
     nextButton.setInteractive({ useHandCursor: true });
 
     nextButton.on('pointerover', () => {
-      nextButton.setColor('#ffff00');
-      nextButton.setScale(1.1);
+      nextButton.setColor(THEME.cyan);
+      nextButton.setScale(1.05);
     });
 
     nextButton.on('pointerout', () => {
-      nextButton.setColor('#00ff00');
+      nextButton.setColor(THEME.text);
       nextButton.setScale(1);
     });
 
@@ -103,28 +197,34 @@ export class GameOverScene extends Phaser.Scene {
         // Game complete!
         this.scene.start('MenuScene');
       } else {
-        this.scene.start('MainScene', { door: nextDoor, stage: nextStage });
+        this.scene.start('MainScene', { door: nextDoor, stage: nextStage, difficulty: this.difficulty });
       }
     });
 
     // Menu button
-    const menuButton = this.add.text(width / 2, height - 80, 'MAIN MENU', {
-      fontSize: '24px',
-      color: '#ff0000',
-      fontFamily: 'monospace',
-      backgroundColor: '#330000',
-      padding: { x: 20, y: 10 },
-    });
+    const menuButton = this.add.text(
+      width / 2 + buttonSpacing / 2,
+      buttonY,
+      'MAIN MENU',
+      {
+        fontSize: '24px',
+        color: THEME.text,
+        fontFamily: 'monospace',
+        fontStyle: 'bold',
+        backgroundColor: THEME.primary,
+        padding: { x: 25, y: 12 },
+      }
+    );
     menuButton.setOrigin(0.5);
     menuButton.setInteractive({ useHandCursor: true });
 
     menuButton.on('pointerover', () => {
-      menuButton.setColor('#ffff00');
-      menuButton.setScale(1.1);
+      menuButton.setColor(THEME.cyan);
+      menuButton.setScale(1.05);
     });
 
     menuButton.on('pointerout', () => {
-      menuButton.setColor('#ff0000');
+      menuButton.setColor(THEME.text);
       menuButton.setScale(1);
     });
 
