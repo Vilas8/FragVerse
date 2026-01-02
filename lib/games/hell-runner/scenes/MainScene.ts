@@ -4,6 +4,11 @@ import { Enemy } from '../entities/Enemy';
 import { Powerup, PowerupManager } from '../entities/Powerup';
 import { Obstacle } from '../entities/Obstacle';
 import { LevelData } from '../types';
+import { HUD } from '../ui/HUD';
+import { ScoreManager } from '../ui/ScoreManager';
+import { AchievementSystem } from '../ui/AchievementSystem';
+import { THEME } from '../config/colors';
+import { getDifficulty, DifficultyLevel, applyDifficultyModifier } from '../config/difficulty';
 
 interface PlatformData {
   x: number;
@@ -31,13 +36,19 @@ export class MainScene extends Phaser.Scene {
   private door!: Phaser.Physics.Arcade.Sprite;
   private deaths = 0;
   private startTime = 0;
-  private deathText!: Phaser.GameObjects.Text;
-  private timerText!: Phaser.GameObjects.Text;
-  private levelText!: Phaser.GameObjects.Text;
-  private powerupText!: Phaser.GameObjects.Text;
   private currentDoor = 1;
   private currentStage = 1;
   private spawnPoint = { x: 50, y: 500 };
+  
+  // Modern systems
+  private hud!: HUD;
+  private scoreManager!: ScoreManager;
+  private achievementSystem!: AchievementSystem;
+  private difficulty: DifficultyLevel = 'normal';
+  private levelStartTime: number = 0;
+  private currentDeaths: number = 0;
+  private currentEnemiesDefeated: number = 0;
+  private currentPowerupsCollected: number = 0;
   
   // Enemy and powerup management
   private enemies: Enemy[] = [];
@@ -64,12 +75,17 @@ export class MainScene extends Phaser.Scene {
     super({ key: 'MainScene' });
   }
 
-  init(data: { door: number; stage: number }) {
+  init(data: { door: number; stage: number; difficulty?: DifficultyLevel }) {
     this.currentDoor = data.door || 1;
     this.currentStage = data.stage || 1;
+    this.difficulty = data.difficulty || 'normal';
     this.deaths = 0;
+    this.currentDeaths = 0;
     this.enemiesDefeated = 0;
+    this.currentEnemiesDefeated = 0;
+    this.currentPowerupsCollected = 0;
     this.startTime = Date.now();
+    this.levelStartTime = 0;
     this.powerupManager.clear();
     this.gravityFlipped = false;
     this.controlsReversed = false;
@@ -80,6 +96,18 @@ export class MainScene extends Phaser.Scene {
 
   create() {
     const width = this.cameras.main.width;
+
+    // Set background to modern theme
+    this.cameras.main.setBackgroundColor(THEME.background);
+
+    // Initialize modern systems
+    this.scoreManager = new ScoreManager();
+    this.achievementSystem = new AchievementSystem();
+    this.hud = new HUD(this, this.scoreManager);
+    this.hud.create();
+
+    // Record level start time
+    this.levelStartTime = Date.now();
 
     // Create platforms and spikes groups
     this.platforms = this.physics.add.staticGroup();
@@ -94,12 +122,15 @@ export class MainScene extends Phaser.Scene {
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0);
     this.player.setDrag(0.9);
-    this.physics.world.gravity.y = this.baseGravity;
+    
+    // Apply difficulty modifier to gravity
+    const difficultyModifier = applyDifficultyModifier(this.baseGravity, this.difficulty, 'gravityMultiplier');
+    this.physics.world.gravity.y = difficultyModifier;
 
     // Create door FIRST before collider
     this.door = this.physics.add.sprite(level.door.x, level.door.y, 'door');
     this.door.setImmovable(true);
-    this.door.setDisplayOrigin(0, 0); // Align top-left
+    this.door.setDisplayOrigin(0, 0);
 
     // Collisions - Platform collision
     this.physics.add.collider(this.player, this.platforms);
@@ -107,7 +138,7 @@ export class MainScene extends Phaser.Scene {
     // Spike collision
     this.physics.add.overlap(this.player, this.spikes, this.hitSpike, undefined, this);
     
-    // Door collision - should trigger level complete
+    // Door collision
     this.physics.add.overlap(this.player, this.door, this.reachDoor, undefined, this);
     
     // Powerup collection
@@ -123,10 +154,8 @@ export class MainScene extends Phaser.Scene {
     // Obstacle collisions
     this.obstacles.forEach((obstacle) => {
       if (obstacle.getType() === 'gravity-flip' || obstacle.getType() === 'control-reverse') {
-        // Zone-based obstacles (no physical collision)
         this.physics.add.overlap(this.player, obstacle.sprite, () => this.handleObstacleCollision(obstacle), undefined, this);
       } else {
-        // Physical obstacles
         this.physics.add.collider(this.player, obstacle.sprite, () => this.handleObstacleCollision(obstacle));
       }
     });
@@ -140,54 +169,10 @@ export class MainScene extends Phaser.Scene {
       right: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
 
-    // Mobile controls - only create if on mobile
+    // Mobile controls
     if (this.isMobileDevice) {
       this.createMobileControls();
     }
-
-    // UI
-    this.deathText = this.add.text(16, 16, `Deaths: ${this.deaths}`, {
-      fontSize: '20px',
-      color: '#ff0000',
-      fontFamily: 'monospace',
-      backgroundColor: '#000000',
-      padding: { x: 8, y: 4 },
-    });
-    this.deathText.setScrollFactor(0);
-
-    this.timerText = this.add.text(width - 16, 16, 'Time: 0.0s', {
-      fontSize: '20px',
-      color: '#00ff00',
-      fontFamily: 'monospace',
-      backgroundColor: '#000000',
-      padding: { x: 8, y: 4 },
-    });
-    this.timerText.setOrigin(1, 0);
-    this.timerText.setScrollFactor(0);
-
-    this.levelText = this.add.text(
-      width / 2,
-      16,
-      `Door ${this.currentDoor} - Stage ${this.currentStage}`,
-      {
-        fontSize: '20px',
-        color: '#ffffff',
-        fontFamily: 'monospace',
-        backgroundColor: '#000000',
-        padding: { x: 8, y: 4 },
-      }
-    );
-    this.levelText.setOrigin(0.5, 0);
-    this.levelText.setScrollFactor(0);
-    
-    this.powerupText = this.add.text(16, 50, '', {
-      fontSize: '14px',
-      color: '#ffff00',
-      fontFamily: 'monospace',
-      backgroundColor: '#000000',
-      padding: { x: 8, y: 4 },
-    });
-    this.powerupText.setScrollFactor(0);
   }
 
   loadLevel(level: LevelData) {
@@ -204,10 +189,13 @@ export class MainScene extends Phaser.Scene {
     // Set spawn point
     this.spawnPoint = level.spawnPoint;
 
-    // Create platforms
+    // Create platforms with difficulty modifier
+    const platformSizeModifier = applyDifficultyModifier(1, this.difficulty, 'platformSize');
     level.platforms.forEach((platform: PlatformData) => {
       const p = this.platforms.create(platform.x, platform.y, 'platform');
-      p.setScale(platform.width / 32, platform.height / 32);
+      const scaledWidth = (platform.width / 32) * platformSizeModifier;
+      const scaledHeight = (platform.height / 32);
+      p.setScale(scaledWidth, scaledHeight);
       p.refreshBody();
     });
 
@@ -216,8 +204,10 @@ export class MainScene extends Phaser.Scene {
       this.spikes.create(spike.x, spike.y, 'spike');
     });
     
-    // Create enemies
-    level.enemies.forEach((enemyData) => {
+    // Create enemies with difficulty modifier
+    const enemyCountModifier = applyDifficultyModifier(1, this.difficulty, 'enemyCount');
+    const enemiesToSpawn = Math.ceil(level.enemies.length * enemyCountModifier);
+    level.enemies.slice(0, enemiesToSpawn).forEach((enemyData) => {
       const enemy = new Enemy(this, enemyData.x, enemyData.y, enemyData.type, 'enemy');
       this.enemies.push(enemy);
     });
@@ -309,14 +299,23 @@ export class MainScene extends Phaser.Scene {
   }
 
   update() {
-    // Ensure player body exists
     if (!this.player || !this.player.body) {
       return;
     }
 
-    // Update timer
-    const elapsed = (Date.now() - this.startTime) / 1000;
-    this.timerText.setText(`Time: ${elapsed.toFixed(1)}s`);
+    // Calculate elapsed time
+    const elapsed = (Date.now() - this.levelStartTime) / 1000;
+
+    // Update HUD
+    this.hud.update(
+      this.currentDeaths,
+      elapsed,
+      this.currentDoor,
+      this.currentStage,
+      this.scoreManager.getStats().score,
+      this.scoreManager.getComboText(),
+      this.getPowerupStatus()
+    );
 
     // Update enemies
     this.enemies.forEach((enemy) => {
@@ -341,28 +340,11 @@ export class MainScene extends Phaser.Scene {
     this.powerupManager.update(Date.now());
     this.hasShield = this.powerupManager.hasActiveShield();
     this.canDoubleJump = this.powerupManager.canDoubleJumpNow();
-    
-    // Update powerup display
-    const activePowerups = this.powerupManager.getActivePowerups();
-    let powerupDisplay = 'Powerups: ';
-    if (activePowerups.length === 0) {
-      powerupDisplay += 'None';
-    } else {
-      powerupDisplay += activePowerups.map((p) => {
-        const remaining = (this.powerupManager.getRemainingTime(p) / 1000).toFixed(1);
-        return `${p}(${remaining}s)`;
-      }).join(' ');
-    }
-    
-    // Add status effects
-    if (this.gravityFlipped) powerupDisplay += ' | GRAVITY FLIPPED ⬆';
-    if (this.controlsReversed) powerupDisplay += ' | CONTROLS REVERSED ↔';
-    
-    this.powerupText.setText(powerupDisplay);
 
     // Movement
     const baseSpeed = 200;
-    const speed = baseSpeed * this.powerupManager.getSpeedMultiplier();
+    const speedModifier = applyDifficultyModifier(1, this.difficulty, 'speedMultiplier');
+    const speed = baseSpeed * speedModifier * this.powerupManager.getSpeedMultiplier();
     const jumpVelocity = -400;
 
     let left = this.cursors.left.isDown || this.wasd.left.isDown || this.mobileControls.left;
@@ -393,8 +375,14 @@ export class MainScene extends Phaser.Scene {
 
     // Check if fell off map
     if (this.player.y > this.cameras.main.height + 50) {
-      this.die();
+      this.handlePlayerDeath();
     }
+  }
+
+  private getPowerupStatus(): string {
+    const activePowerups = this.powerupManager.getActivePowerups();
+    if (activePowerups.length === 0) return 'Powerups: None';
+    return `Powerups: ${activePowerups.length}`;
   }
 
   handleObstacleCollision(obstacle: Obstacle): void {
@@ -410,7 +398,7 @@ export class MainScene extends Phaser.Scene {
         this.toggleControlReverse();
         break;
       case 'fake-door':
-        this.die();
+        this.handlePlayerDeath();
         break;
       case 'teleport':
         const dest = obstacle.getDestination();
@@ -424,7 +412,8 @@ export class MainScene extends Phaser.Scene {
 
   toggleGravityFlip(): void {
     this.gravityFlipped = !this.gravityFlipped;
-    this.physics.world.gravity.y = this.gravityFlipped ? -this.baseGravity : this.baseGravity;
+    const difficultyModifier = applyDifficultyModifier(this.baseGravity, this.difficulty, 'gravityMultiplier');
+    this.physics.world.gravity.y = this.gravityFlipped ? -difficultyModifier : difficultyModifier;
     this.player.setTint(this.gravityFlipped ? 0x00ccff : 0xffffff);
   }
 
@@ -443,7 +432,7 @@ export class MainScene extends Phaser.Scene {
         else this.player.clearTint();
       });
     } else {
-      this.die();
+      this.handlePlayerDeath();
     }
   }
   
@@ -451,7 +440,7 @@ export class MainScene extends Phaser.Scene {
     if (this.hasShield) {
       this.powerupManager.useShield();
       enemy.dealDamage();
-      this.enemiesDefeated++;
+      this.currentEnemiesDefeated++;
       this.player.setTint(0xffaa00);
       this.time.delayedCall(200, () => {
         if (this.gravityFlipped) this.player.setTint(0x00ccff);
@@ -459,13 +448,14 @@ export class MainScene extends Phaser.Scene {
         else this.player.clearTint();
       });
     } else {
-      this.die();
+      this.handlePlayerDeath();
     }
   }
   
   collectPowerup(powerup: Powerup) {
     const effect = powerup.collect();
     this.powerupManager.applyPowerup(effect);
+    this.currentPowerupsCollected++;
     
     this.player.setTint(0xffff00);
     this.time.delayedCall(100, () => {
@@ -475,15 +465,16 @@ export class MainScene extends Phaser.Scene {
     });
   }
 
-  die() {
-    this.deaths++;
-    this.deathText.setText(`Deaths: ${this.deaths}`);
+  private handlePlayerDeath() {
+    this.currentDeaths++;
+    this.scoreManager.resetCombo();
     
     this.cameras.main.flash(200, 255, 0, 0);
     
     this.gravityFlipped = false;
     this.controlsReversed = false;
-    this.physics.world.gravity.y = this.baseGravity;
+    const difficultyModifier = applyDifficultyModifier(this.baseGravity, this.difficulty, 'gravityMultiplier');
+    this.physics.world.gravity.y = difficultyModifier;
     this.player.clearTint();
     
     this.player.setPosition(this.spawnPoint.x, this.spawnPoint.y);
@@ -491,14 +482,93 @@ export class MainScene extends Phaser.Scene {
   }
 
   reachDoor() {
-    const timeElapsed = (Date.now() - this.startTime) / 1000;
+    const timeElapsed = (Date.now() - this.levelStartTime) / 1000;
     
-    this.scene.start('GameOverScene', {
+    // Calculate and add score
+    const levelScore = this.scoreManager.completedLevel(
+      timeElapsed,
+      this.currentDeaths,
+      this.currentDoor,
+      this.currentStage,
+      this.currentEnemiesDefeated,
+      this.currentPowerupsCollected
+    );
+
+    // Check achievements
+    const unlockedAchievements = this.achievementSystem.checkAchievements({
+      time: timeElapsed,
+      deaths: this.currentDeaths,
       door: this.currentDoor,
       stage: this.currentStage,
-      deaths: this.deaths,
-      time: timeElapsed,
-      enemiesDefeated: this.enemiesDefeated,
+      combo: this.scoreManager.getStats().combo,
+      powerupsCollected: this.currentPowerupsCollected,
+      enemiesDefeated: this.currentEnemiesDefeated,
+      isHardcore: this.difficulty === 'hardcore',
+    });
+
+    // Show level complete overlay
+    const stats = this.scoreManager.getStats();
+    this.hud.showLevelComplete(
+      levelScore,
+      stats.score,
+      levelScore > stats.personalBest
+    );
+
+    // Display achievement notifications
+    if (unlockedAchievements.length > 0) {
+      this.showAchievementNotifications(unlockedAchievements);
+    }
+
+    // Delay scene transition to show overlay
+    this.time.delayedCall(3000, () => {
+      this.scene.start('GameOverScene', {
+        door: this.currentDoor,
+        stage: this.currentStage,
+        deaths: this.currentDeaths,
+        time: timeElapsed,
+        enemiesDefeated: this.currentEnemiesDefeated,
+        difficulty: this.difficulty,
+        score: stats.score,
+        achievements: unlockedAchievements,
+      });
+    });
+  }
+
+  private showAchievementNotifications(achievementIds: string[]): void {
+    const width = this.cameras.main.width;
+    let notificationY = 100;
+
+    achievementIds.forEach((id) => {
+      const achievement = this.achievementSystem.getAchievement(id as any);
+      if (achievement) {
+        const notification = this.add.text(
+          width - 20,
+          notificationY,
+          `${achievement.icon} ${achievement.name} +${achievement.points}pts`,
+          {
+            fontSize: '14px',
+            color: THEME.green,
+            fontFamily: 'monospace',
+            backgroundColor: THEME.primary,
+            padding: { x: 10, y: 5 },
+          }
+        );
+        notification.setOrigin(1, 0);
+        notification.setScrollFactor(0);
+
+        // Fade out animation
+        this.tweens.add({
+          targets: notification,
+          alpha: 0,
+          duration: 3000,
+          delay: 2000,
+          onComplete: () => {
+            notification.destroy();
+          },
+        });
+
+        notificationY += 40;
+      }
     });
   }
 }
