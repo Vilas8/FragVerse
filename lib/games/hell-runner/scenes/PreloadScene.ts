@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -174,16 +174,26 @@ export class PreloadScene extends Phaser.Scene {
 
   createSawSprite() {
     const graphics = this.add.graphics();
-    // Draw spinning saw blade
+    // Draw spinning saw blade - simplified version
     graphics.fillStyle(0xffcc00);
-    graphics.fillCircle(8, 8, 8);
-    // Saw teeth
+    graphics.fillCircle(8, 8, 7);
+    // Draw 8 teeth as small triangles
     graphics.fillStyle(0xff9900);
     for (let i = 0; i < 8; i++) {
       const angle = (i / 8) * Math.PI * 2;
-      const x = 8 + Math.cos(angle) * 9;
-      const y = 8 + Math.sin(angle) * 9;
-      graphics.fillTriangleShape([{x: 8, y: 8}, {x: x - 1.5, y: y - 1.5}, {x: x + 1.5, y: y + 1.5}]);
+      const x1 = 8 + Math.cos(angle) * 7;
+      const y1 = 8 + Math.sin(angle) * 7;
+      const x2 = 8 + Math.cos(angle + 0.2) * 9;
+      const y2 = 8 + Math.sin(angle + 0.2) * 9;
+      const x3 = 8 + Math.cos(angle - 0.2) * 9;
+      const y3 = 8 + Math.sin(angle - 0.2) * 9;
+      
+      graphics.beginPath();
+      graphics.moveTo(x1, y1);
+      graphics.lineTo(x2, y2);
+      graphics.lineTo(x3, y3);
+      graphics.closePath();
+      graphics.fillPath();
     }
     graphics.generateTexture('saw', 16, 16);
     graphics.destroy();
