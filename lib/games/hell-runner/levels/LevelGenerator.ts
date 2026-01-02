@@ -360,7 +360,7 @@ function generateDoor6(level: LevelData, stage: number): LevelData {
       level.platforms.push({ x: 150, y: 480, width: 64, height: 32 });
       level.obstacles.push({
         x: 300, y: 450, type: 'teleport',
-        properties: { destination: { x: 500, y: 480 } }
+        properties: { destinationX: 500, destinationY: 480 }
       });
       level.platforms.push({ x: 650, y: 480, width: 64, height: 32 });
       level.powerups.push({ x: 400, y: 380, type: 'shield' });
@@ -369,7 +369,7 @@ function generateDoor6(level: LevelData, stage: number): LevelData {
       level.platforms.push({ x: 150, y: 480, width: 64, height: 32 });
       level.obstacles.push({
         x: 300, y: 400, type: 'teleport',
-        properties: { destination: { x: 450, y: 480 } }
+        properties: { destinationX: 450, destinationY: 480 }
       });
       level.obstacles.push({
         x: 500, y: 430, type: 'fake-door'
@@ -381,7 +381,7 @@ function generateDoor6(level: LevelData, stage: number): LevelData {
       level.platforms.push({ x: 100, y: 480, width: 64, height: 32 });
       level.obstacles.push({
         x: 250, y: 430, type: 'teleport',
-        properties: { destination: { x: 400, y: 380 } }
+        properties: { destinationX: 400, destinationY: 380 }
       });
       level.platforms.push({ x: 400, y: 380, width: 64, height: 32 });
       level.obstacles.push({
@@ -395,7 +395,7 @@ function generateDoor6(level: LevelData, stage: number): LevelData {
       level.platforms.push({ x: 120, y: 480, width: 64, height: 32 });
       level.obstacles.push({
         x: 250, y: 430, type: 'teleport',
-        properties: { destination: { x: 400, y: 300 } }
+        properties: { destinationX: 400, destinationY: 300 }
       });
       level.platforms.push({ x: 400, y: 300, width: 64, height: 32 });
       level.obstacles.push({
@@ -403,7 +403,7 @@ function generateDoor6(level: LevelData, stage: number): LevelData {
       });
       level.obstacles.push({
         x: 620, y: 360, type: 'teleport',
-        properties: { destination: { x: 670, y: 480 } }
+        properties: { destinationX: 670, destinationY: 480 }
       });
       level.platforms.push({ x: 670, y: 480, width: 64, height: 32 });
       level.enemies.push({ x: 300, y: 350, type: 'jumper' });
@@ -450,7 +450,7 @@ function generateDoor7(level: LevelData, stage: number): LevelData {
         x: 420, y: 420, type: 'disappearing', properties: { disappearDelay: 1000, reappearDelay: 1500 }
       });
       level.obstacles.push({
-        x: 550, y: 450, type: 'teleport', properties: { destination: { x: 650, y: 480 } }
+        x: 550, y: 450, type: 'teleport', properties: { destinationX: 650, destinationY: 480 }
       });
       level.platforms.push({ x: 680, y: 480, width: 64, height: 32 });
       level.powerups.push({ x: 420, y: 350, type: 'speed' });
@@ -488,7 +488,7 @@ function generateDoor7(level: LevelData, stage: number): LevelData {
         x: 580, y: 380, type: 'popup-spike', properties: { popupDelay: 1200, visibleDuration: 1000 }
       });
       level.obstacles.push({
-        x: 680, y: 430, type: 'teleport', properties: { destination: { x: 700, y: 480 } }
+        x: 680, y: 430, type: 'teleport', properties: { destinationX: 700, destinationY: 480 }
       });
       level.enemies.push({ x: 250, y: 380, type: 'walker' });
       level.enemies.push({ x: 450, y: 30, type: 'walker' });
@@ -517,7 +517,7 @@ function generateDoor8(level: LevelData, stage: number): LevelData {
         x: 550, y: 430, type: 'saw', properties: { speed: 150, direction: 1 }
       });
       level.obstacles.push({
-        x: 680, y: 430, type: 'teleport', properties: { destination: { x: 700, y: 480 } }
+        x: 680, y: 430, type: 'teleport', properties: { destinationX: 700, destinationY: 480 }
       });
       level.platforms.push({ x: 700, y: 480, width: 64, height: 32 });
       level.enemies.push({ x: 250, y: 380, type: 'jumper' });
@@ -564,7 +564,7 @@ function generateDoor8Stage1Harder(level: LevelData, stage: number): LevelData {
   
   // Teleport
   level.obstacles.push({
-    x: 680, y: 420, type: 'teleport', properties: { destination: { x: 700, y: 480 } }
+    x: 680, y: 420, type: 'teleport', properties: { destinationX: 700, destinationY: 480 }
   });
   
   level.platforms.push({ x: 700, y: 480, width: 64, height: 32 });
