@@ -1,6 +1,25 @@
 import Phaser from 'phaser';
 import { createLevel } from '../levels/LevelGenerator';
 
+interface LevelData {
+  spawnPoint: { x: number; y: number };
+  platforms: Array<{ x: number; y: number; width: number; height: number }>;
+  spikes: Array<{ x: number; y: number }>;
+  door: { x: number; y: number };
+}
+
+interface PlatformData {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface SpikeData {
+  x: number;
+  y: number;
+}
+
 export class MainScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -41,7 +60,6 @@ export class MainScene extends Phaser.Scene {
 
   create() {
     const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
 
     // Create platforms and spikes groups
     this.platforms = this.physics.add.staticGroup();
@@ -109,7 +127,7 @@ export class MainScene extends Phaser.Scene {
     this.levelText.setScrollFactor(0);
   }
 
-  loadLevel(level: any) {
+  loadLevel(level: LevelData) {
     // Clear existing level
     this.platforms.clear(true, true);
     this.spikes.clear(true, true);
@@ -118,14 +136,14 @@ export class MainScene extends Phaser.Scene {
     this.spawnPoint = level.spawnPoint;
 
     // Create platforms
-    level.platforms.forEach((platform: any) => {
+    level.platforms.forEach((platform: PlatformData) => {
       const p = this.platforms.create(platform.x, platform.y, 'platform');
       p.setScale(platform.width / 32, platform.height / 32);
       p.refreshBody();
     });
 
     // Create spikes
-    level.spikes.forEach((spike: any) => {
+    level.spikes.forEach((spike: SpikeData) => {
       this.spikes.create(spike.x, spike.y, 'spike');
     });
 

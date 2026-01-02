@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { MainScene } from '@/lib/games/hell-runner/scenes/MainScene';
 import { PreloadScene } from '@/lib/games/hell-runner/scenes/PreloadScene';
 import { MenuScene } from '@/lib/games/hell-runner/scenes/MenuScene';
 import { GameOverScene } from '@/lib/games/hell-runner/scenes/GameOverScene';
-import { saveGameProgress, getGameProgress } from '@/lib/games/hell-runner/db-actions';
 
 interface Props {
   userId?: string;
