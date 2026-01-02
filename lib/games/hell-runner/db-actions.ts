@@ -295,21 +295,18 @@ export async function updatePlayerStats(
   const supabase = createClient();
 
   try {
-    // Calculate win rate if we have match data
-    let updates_with_rate = { ...updates, last_updated: new Date().toISOString() };
-
-    if (updates.matches_won !== undefined && updates.matches_lost !== undefined) {
-      const total = updates.matches_won + updates.matches_lost;
-      const win_rate = total > 0 ? (updates.matches_won / total) * 100 : 0;
-      updates_with_rate = { ...updates_with_rate, win_rate };
-    }
+    // Prepare updates without trying to set computed fields
+    const updates_to_save = {
+      ...updates,
+      last_updated: new Date().toISOString(),
+    };
 
     const { data, error } = await supabase
       .from('player_stats')
       .upsert(
         {
           user_id: userId,
-          ...updates_with_rate,
+          ...updates_to_save,
         },
         { onConflict: 'user_id' }
       )
