@@ -93,17 +93,16 @@ export class MainScene extends Phaser.Scene {
     this.player = this.physics.add.sprite(this.spawnPoint.x, this.spawnPoint.y, 'player');
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0);
+    this.player.setDrag(0.9);
     this.physics.world.gravity.y = this.baseGravity;
 
-    // Collisions
+    // Collisions - Platform collision
     this.physics.add.collider(this.player, this.platforms);
     
-    // Obstacle collisions
-    this.obstacles.forEach((obstacle) => {
-      this.physics.add.collider(this.player, obstacle.sprite, () => this.handleObstacleCollision(obstacle));
-    });
-    
+    // Spike collision
     this.physics.add.overlap(this.player, this.spikes, this.hitSpike, undefined, this);
+    
+    // Door collision
     this.physics.add.overlap(this.player, this.door, this.reachDoor, undefined, this);
     
     // Powerup collection
@@ -114,6 +113,17 @@ export class MainScene extends Phaser.Scene {
     // Enemy collision
     this.enemies.forEach((enemy) => {
       this.physics.add.overlap(this.player, enemy.sprite, () => this.hitEnemy(enemy), undefined, this);
+    });
+    
+    // Obstacle collisions
+    this.obstacles.forEach((obstacle) => {
+      if (obstacle.getType() === 'gravity-flip' || obstacle.getType() === 'control-reverse') {
+        // Zone-based obstacles (no physical collision)
+        this.physics.add.overlap(this.player, obstacle.sprite, () => this.handleObstacleCollision(obstacle), undefined, this);
+      } else {
+        // Physical obstacles
+        this.physics.add.collider(this.player, obstacle.sprite, () => this.handleObstacleCollision(obstacle));
+      }
     });
 
     // Keyboard controls
@@ -205,28 +215,18 @@ export class MainScene extends Phaser.Scene {
     level.enemies.forEach((enemyData) => {
       const enemy = new Enemy(this, enemyData.x, enemyData.y, enemyData.type, 'enemy');
       this.enemies.push(enemy);
-      this.physics.add.overlap(this.player, enemy.sprite, () => this.hitEnemy(enemy), undefined, this);
     });
     
     // Create powerups
     level.powerups.forEach((powerupData) => {
       const powerup = new Powerup(this, powerupData.x, powerupData.y, powerupData.type, 'powerup');
       this.powerups.push(powerup);
-      this.physics.add.overlap(this.player, powerup.sprite, () => this.collectPowerup(powerup), undefined, this);
     });
     
     // Create obstacles
     level.obstacles.forEach((obstacleData) => {
       const obstacle = new Obstacle(this, obstacleData.x, obstacleData.y, obstacleData.type, obstacleData.properties);
       this.obstacles.push(obstacle);
-      
-      if (obstacleData.type === 'gravity-flip' || obstacleData.type === 'control-reverse') {
-        // These don't need collision, they're zone-based
-        this.physics.add.overlap(this.player, obstacle.sprite, () => this.handleObstacleCollision(obstacle), undefined, this);
-      } else {
-        // Saw, disappearing, popup spike need collision
-        this.physics.add.collider(this.player, obstacle.sprite, () => this.handleObstacleCollision(obstacle));
-      }
     });
 
     // Create door
@@ -382,7 +382,8 @@ export class MainScene extends Phaser.Scene {
     }
 
     // Check if player is touching ground
-    const isTouchingGround = this.player.body.touching.down;
+    const body = this.player.body as Phaser.Physics.Arcade.Body;
+    const isTouchingGround = body.touching.down || body.blocked.down;
     
     if (jump && isTouchingGround) {
       const jumpForce = this.gravityFlipped ? 400 : jumpVelocity;
@@ -434,7 +435,7 @@ export class MainScene extends Phaser.Scene {
   hitSpike() {
     if (this.hasShield) {
       this.powerupManager.useShield();
-      this.player.setTint(0xffaa00); // Orange tint when shield breaks
+      this.player.setTint(0xffaa00);
       this.time.delayedCall(200, () => {
         if (this.gravityFlipped) this.player.setTint(0x00ccff);
         else if (this.controlsReversed) this.player.setTint(0xff00ff);
@@ -465,7 +466,6 @@ export class MainScene extends Phaser.Scene {
     const effect = powerup.collect();
     this.powerupManager.applyPowerup(effect);
     
-    // Visual feedback
     this.player.setTint(0xffff00);
     this.time.delayedCall(100, () => {
       if (this.gravityFlipped) this.player.setTint(0x00ccff);
@@ -478,22 +478,18 @@ export class MainScene extends Phaser.Scene {
     this.deaths++;
     this.deathText.setText(`Deaths: ${this.deaths}`);
     
-    // Flash screen red
     this.cameras.main.flash(200, 255, 0, 0);
     
-    // Reset modifiers
     this.gravityFlipped = false;
     this.controlsReversed = false;
     this.physics.world.gravity.y = this.baseGravity;
     this.player.clearTint();
     
-    // Respawn
     this.player.setPosition(this.spawnPoint.x, this.spawnPoint.y);
     this.player.setVelocity(0, 0);
   }
 
   reachDoor() {
-    // Level complete!
     const timeElapsed = (Date.now() - this.startTime) / 1000;
     
     this.scene.start('GameOverScene', {
