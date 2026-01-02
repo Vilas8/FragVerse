@@ -1,6 +1,11 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
+import { ObstacleProperties } from '../types';
 
 export type ObstacleType = 'disappearing' | 'saw' | 'popup-spike' | 'gravity-flip' | 'control-reverse' | 'fake-door' | 'teleport';
+
+export interface ArcadePhysicsBody extends Phaser.Physics.Arcade.Body {
+  enable?: boolean;
+}
 
 export interface ObstacleData {
   x: number;
@@ -8,13 +13,7 @@ export interface ObstacleData {
   type: ObstacleType;
   width?: number;
   height?: number;
-  properties?: {
-    disappearDelay?: number;
-    reappearDelay?: number;
-    speed?: number;
-    direction?: number;
-    destination?: { x: number; y: number };
-  };
+  properties?: ObstacleProperties;
 }
 
 export class Obstacle {
@@ -22,14 +21,14 @@ export class Obstacle {
   public type: ObstacleType;
   private isActive: boolean = true;
   private timer: number = 0;
-  private properties: any;
+  private properties: ObstacleProperties;
 
   constructor(
     scene: Phaser.Scene,
     x: number,
     y: number,
     type: ObstacleType,
-    properties?: any
+    properties?: ObstacleProperties
   ) {
     this.type = type;
     this.properties = properties || {};
@@ -132,35 +131,41 @@ export class Obstacle {
     if (cycleProgress < disappearDelay) {
       // Visible
       this.sprite.setAlpha(1);
-      (this.sprite.body as any).enable = true;
+      const body = this.sprite.body as ArcadePhysicsBody;
+      if (body) body.enable = true;
     } else {
       // Invisible and non-collidable
       this.sprite.setAlpha(0.2);
-      (this.sprite.body as any).enable = false;
+      const body = this.sprite.body as ArcadePhysicsBody;
+      if (body) body.enable = false;
     }
   }
 
   private updateSaw(): void {
     this.sprite.rotation += 0.1;
     const speed = this.properties.speed || 100;
-    const direction = this.properties.direction || 1;
+    // Direction is stored in properties but defaulted if not present
+    const direction = (this.properties as Record<string, number | undefined>)['direction'] || 1;
     this.sprite.setVelocityX(direction * speed);
   }
 
   private updatePopupSpike(): void {
     const popupDelay = this.properties.popupDelay || 2000;
-    const visibleDuration = this.properties.visibleDuration || 1000;
+    // Visible duration stored as separate property
+    const visibleDuration = (this.properties as Record<string, number | undefined>)['visibleDuration'] || 1000;
     const cycleTime = popupDelay + visibleDuration;
     const cycleProgress = this.timer % cycleTime;
 
     if (cycleProgress < popupDelay) {
       // Hidden
       this.sprite.setAlpha(0.1);
-      (this.sprite.body as any).enable = false;
+      const body = this.sprite.body as ArcadePhysicsBody;
+      if (body) body.enable = false;
     } else {
       // Visible and active
       this.sprite.setAlpha(1);
-      (this.sprite.body as any).enable = true;
+      const body = this.sprite.body as ArcadePhysicsBody;
+      if (body) body.enable = true;
     }
   }
 
@@ -176,8 +181,11 @@ export class Obstacle {
   }
 
   getDestination(): { x: number; y: number } | null {
-    if (this.type === 'teleport' && this.properties.destination) {
-      return this.properties.destination;
+    if (this.type === 'teleport' && this.properties.destinationX !== undefined && this.properties.destinationY !== undefined) {
+      return {
+        x: this.properties.destinationX,
+        y: this.properties.destinationY,
+      };
     }
     return null;
   }
