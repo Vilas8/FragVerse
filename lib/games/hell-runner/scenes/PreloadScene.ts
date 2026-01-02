@@ -65,7 +65,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   createPlayerSprite() {
-    const graphics = this.make.graphics({ x: 0, y: 0, add: false });
+    const graphics = this.add.graphics();
     graphics.fillStyle(0xff0000);
     graphics.fillRect(0, 0, 16, 16);
     graphics.generateTexture('player', 16, 16);
@@ -73,7 +73,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   createPlatformSprite() {
-    const graphics = this.make.graphics({ x: 0, y: 0, add: false });
+    const graphics = this.add.graphics();
     graphics.fillStyle(0x888888);
     graphics.fillRect(0, 0, 32, 32);
     graphics.generateTexture('platform', 32, 32);
@@ -81,7 +81,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   createSpikeSprite() {
-    const graphics = this.make.graphics({ x: 0, y: 0, add: false });
+    const graphics = this.add.graphics();
     // Draw triangle spike
     graphics.fillStyle(0xff6600);
     graphics.beginPath();
@@ -95,7 +95,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   createDoorSprite() {
-    const graphics = this.make.graphics({ x: 0, y: 0, add: false });
+    const graphics = this.add.graphics();
     graphics.fillStyle(0x00ff00);
     graphics.fillRect(0, 0, 32, 48);
     graphics.fillStyle(0x008800);
