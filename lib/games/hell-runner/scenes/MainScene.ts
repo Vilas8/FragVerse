@@ -96,13 +96,18 @@ export class MainScene extends Phaser.Scene {
     this.player.setDrag(0.9);
     this.physics.world.gravity.y = this.baseGravity;
 
+    // Create door FIRST before collider
+    this.door = this.physics.add.sprite(level.door.x, level.door.y, 'door');
+    this.door.setImmovable(true);
+    this.door.setDisplayOrigin(0, 0); // Align top-left
+
     // Collisions - Platform collision
     this.physics.add.collider(this.player, this.platforms);
     
     // Spike collision
     this.physics.add.overlap(this.player, this.spikes, this.hitSpike, undefined, this);
     
-    // Door collision
+    // Door collision - should trigger level complete
     this.physics.add.overlap(this.player, this.door, this.reachDoor, undefined, this);
     
     // Powerup collection
@@ -228,10 +233,6 @@ export class MainScene extends Phaser.Scene {
       const obstacle = new Obstacle(this, obstacleData.x, obstacleData.y, obstacleData.type, obstacleData.properties);
       this.obstacles.push(obstacle);
     });
-
-    // Create door
-    this.door = this.physics.add.sprite(level.door.x, level.door.y, 'door');
-    this.door.setImmovable(true);
   }
 
   createMobileControls() {
