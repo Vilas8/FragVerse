@@ -4,7 +4,7 @@ export class GameOverScene extends Phaser.Scene {
   private door!: number;
   private stage!: number;
   private deaths!: number;
-  private time!: number;
+  private completionTime!: number;
 
   constructor() {
     super({ key: 'GameOverScene' });
@@ -14,7 +14,7 @@ export class GameOverScene extends Phaser.Scene {
     this.door = data.door;
     this.stage = data.stage;
     this.deaths = data.deaths;
-    this.time = data.time;
+    this.completionTime = data.time;
   }
 
   create() {
@@ -34,7 +34,7 @@ export class GameOverScene extends Phaser.Scene {
     const stats = this.add.text(
       width / 2,
       height / 2,
-      `Door ${this.door} - Stage ${this.stage}\n\nDeaths: ${this.deaths}\nTime: ${this.time.toFixed(1)}s`,
+      `Door ${this.door} - Stage ${this.stage}\n\nDeaths: ${this.deaths}\nTime: ${this.completionTime.toFixed(1)}s`,
       {
         fontSize: '24px',
         color: '#ffffff',
