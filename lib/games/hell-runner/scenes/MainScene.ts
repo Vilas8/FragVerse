@@ -51,6 +51,7 @@ export class MainScene extends Phaser.Scene {
   private rightButton?: Phaser.GameObjects.Rectangle;
   private jumpButton?: Phaser.GameObjects.Rectangle;
   private mobileControls = { left: false, right: false, jump: false };
+  private isMobileDevice = false;
   
   // Game state
   private canDoubleJump = false;
@@ -72,6 +73,9 @@ export class MainScene extends Phaser.Scene {
     this.powerupManager.clear();
     this.gravityFlipped = false;
     this.controlsReversed = false;
+    
+    // Detect mobile device
+    this.isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 
   create() {
@@ -121,8 +125,10 @@ export class MainScene extends Phaser.Scene {
       right: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
 
-    // Mobile controls
-    this.createMobileControls();
+    // Mobile controls - only create if on mobile
+    if (this.isMobileDevice) {
+      this.createMobileControls();
+    }
 
     // UI
     this.deathText = this.add.text(16, 16, `Deaths: ${this.deaths}`, {
@@ -302,6 +308,11 @@ export class MainScene extends Phaser.Scene {
   }
 
   update() {
+    // Ensure player body exists
+    if (!this.player || !this.player.body) {
+      return;
+    }
+
     // Update timer
     const elapsed = (Date.now() - this.startTime) / 1000;
     this.timerText.setText(`Time: ${elapsed.toFixed(1)}s`);
@@ -370,7 +381,10 @@ export class MainScene extends Phaser.Scene {
       this.player.setVelocityX(0);
     }
 
-    if (jump && this.player.body!.touching.down) {
+    // Check if player is touching ground
+    const isTouchingGround = this.player.body.touching.down;
+    
+    if (jump && isTouchingGround) {
       const jumpForce = this.gravityFlipped ? 400 : jumpVelocity;
       this.player.setVelocityY(jumpForce);
     }
