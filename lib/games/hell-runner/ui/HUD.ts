@@ -127,8 +127,7 @@ export class HUD {
     stage: number,
     score: number,
     combo: string,
-    powerups: string,
-    progress?: { current: number; total: number }
+    powerups: string
   ): void {
     if (this.deathsText) {
       this.deathsText.setText(`Deaths: ${deaths}`);
@@ -153,7 +152,6 @@ export class HUD {
       this.comboText.setText(combo);
       // Pulse effect on high combos
       if (combo.includes('x')) {
-        const comboNum = parseInt(combo);
         const alpha = 0.8 + Math.sin(Date.now() / 200) * 0.2;
         this.comboText.setAlpha(alpha);
       }
