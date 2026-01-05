@@ -6,9 +6,9 @@ import { Obstacle } from '../entities/Obstacle';
 import { LevelData } from '../types';
 import { HUD } from '../ui/HUD';
 import { ScoreManager } from '../ui/ScoreManager';
-import { AchievementSystem } from '../ui/AchievementSystem';
+import { AchievementSystem, AchievementId } from '../ui/AchievementSystem';
 import { THEME } from '../config/colors';
-import { getDifficulty, DifficultyLevel, applyDifficultyModifier } from '../config/difficulty';
+import { DifficultyLevel, applyDifficultyModifier } from '../config/difficulty';
 
 interface PlatformData {
   x: number;
@@ -95,8 +95,6 @@ export class MainScene extends Phaser.Scene {
   }
 
   create() {
-    const width = this.cameras.main.width;
-
     // Set background to modern theme
     this.cameras.main.setBackgroundColor(THEME.background);
 
@@ -539,7 +537,7 @@ export class MainScene extends Phaser.Scene {
     let notificationY = 100;
 
     achievementIds.forEach((id) => {
-      const achievement = this.achievementSystem.getAchievement(id as any);
+      const achievement = this.achievementSystem.getAchievement(id as AchievementId);
       if (achievement) {
         const notification = this.add.text(
           width - 20,
