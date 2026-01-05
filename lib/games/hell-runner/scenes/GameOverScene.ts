@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
 import { ScoreManager } from '../ui/ScoreManager';
-import { AchievementSystem } from '../ui/AchievementSystem';
+import { AchievementSystem, AchievementId } from '../ui/AchievementSystem';
 import { THEME } from '../config/colors';
 import { DifficultyLevel } from '../config/difficulty';
 
@@ -132,7 +132,7 @@ export class GameOverScene extends Phaser.Scene {
 
       statsY += 50;
       this.unlockedAchievements.forEach((achievementId) => {
-        const achievement = this.achievementSystem.getAchievement(achievementId as any);
+        const achievement = this.achievementSystem.getAchievement(achievementId as AchievementId);
         if (achievement) {
           const achievementText = this.add.text(
             width / 2,
