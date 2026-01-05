@@ -114,6 +114,12 @@ export const ACHIEVEMENTS: Record<AchievementId, Omit<Achievement, 'unlocked' | 
   },
 };
 
+interface SavedAchievement {
+  id: AchievementId;
+  unlocked: boolean;
+  unlockedAt?: number;
+}
+
 export class AchievementSystem {
   private achievements: Map<AchievementId, Achievement> = new Map();
 
@@ -278,8 +284,8 @@ export class AchievementSystem {
       try {
         const saved = localStorage.getItem('hellrunner_achievements');
         if (saved) {
-          const data = JSON.parse(saved);
-          data.forEach((item: any) => {
+          const data: SavedAchievement[] = JSON.parse(saved);
+          data.forEach((item) => {
             const achievement = this.achievements.get(item.id);
             if (achievement) {
               achievement.unlocked = item.unlocked;
