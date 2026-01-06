@@ -5,7 +5,7 @@
 
 import * as Phaser from 'phaser';
 import { THEME } from '../config/colors';
-import { DIFFICULTY_LEVELS, DifficultyLevel } from '../config/difficulty';
+import { DIFFICULTIES, DifficultyLevel } from '../config/difficulty';
 import { ScoreManager } from '../ui/ScoreManager';
 import { AchievementSystem } from '../ui/AchievementSystem';
 
@@ -167,7 +167,7 @@ export class EnhancedMenuScene extends Phaser.Scene {
     statsTitle.setOrigin(0.5);
 
     // Best score
-    const bestScore = this.add.text(
+    this.add.text(
       panelX + 30,
       panelY + 55,
       `🏆 Best Score: ${this.scoreManager.formatScore(stats.personalBest)}`,
@@ -181,7 +181,7 @@ export class EnhancedMenuScene extends Phaser.Scene {
     );
 
     // Achievements
-    const achievements = this.add.text(
+    this.add.text(
       panelX + 30,
       panelY + 85,
       `⭐ Achievements: ${achievementProgress}% (${totalPoints}pts)`,
@@ -213,7 +213,7 @@ export class EnhancedMenuScene extends Phaser.Scene {
     });
     selectorTitle.setOrigin(0.5);
 
-    Object.entries(DIFFICULTY_LEVELS).forEach(([key, config]) => {
+    Object.entries(DIFFICULTIES).forEach(([key, config]) => {
       const difficulty = key as DifficultyLevel;
       const buttonY = startY + index * spacing;
 
