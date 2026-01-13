@@ -56,6 +56,13 @@ export interface Match {
 // Contest Type
 export type ContestType = 'free' | 'paid' | 'head_to_head' | 'mega';
 
+// Prize Distribution Item
+export interface PrizeDistributionItem {
+  rank_from: number;
+  rank_to: number;
+  prize: number;
+}
+
 // Contest
 export interface Contest {
   id: string;
@@ -72,7 +79,7 @@ export interface Contest {
   total_prize_pool: number;
   winner_percentage: number;
   first_prize?: number;
-  prize_distribution?: any;
+  prize_distribution?: PrizeDistributionItem[];
   is_guaranteed: boolean;
   is_featured: boolean;
 }

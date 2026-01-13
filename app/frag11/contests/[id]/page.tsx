@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Trophy, Users, Award, TrendingUp, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Trophy, Award, ArrowLeft, CheckCircle } from 'lucide-react';
 import { CyberCard, CyberCardHeader, CyberCardTitle, CyberCardContent, CyberBadge } from '@/components/ui/cyber-card';
 import { CyberButton } from '@/components/ui/cyber-button';
-import { Contest, UserTeam } from '@/types/frag11';
+import { Contest, UserTeam, PrizeDistributionItem } from '@/types/frag11';
 import { createClient } from '@/utils/supabase/client';
 import { formatCurrency } from '@/lib/utils';
 
@@ -249,7 +249,7 @@ export default function ContestDetailPage() {
                 </CyberCardHeader>
                 <CyberCardContent>
                   <div className="space-y-2">
-                    {contest.prize_distribution.map((prize: any, idx: number) => (
+                    {contest.prize_distribution.map((prize: PrizeDistributionItem, idx: number) => (
                       <div key={idx} className="flex justify-between items-center p-3 bg-slate-900/30 rounded-lg">
                         <div className="flex items-center gap-2">
                           <Award className="w-4 h-4 text-yellow-400" />
