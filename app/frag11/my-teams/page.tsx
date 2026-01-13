@@ -131,7 +131,7 @@ export default function MyTeamsPage() {
                     </CyberBadge>
                   )}
                   {team.match?.status === 'completed' && (
-                    <CyberBadge variant="default" className="w-full text-center">
+                    <CyberBadge variant="green" className="w-full text-center">
                       COMPLETED
                     </CyberBadge>
                   )}
