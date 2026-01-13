@@ -5,11 +5,11 @@ import Image from 'next/image';
 import { Calendar, Clock, MapPin, Trophy, Users } from 'lucide-react';
 import { CyberCard, CyberCardHeader, CyberCardContent, CyberBadge } from '@/components/ui/cyber-card';
 import { CyberButton } from '@/components/ui/cyber-button';
-import { IPLMatch } from '@/types/frag11';
+import { Match } from '@/types/frag11';
 import { format } from 'date-fns';
 
 interface MatchCardProps {
-  match: IPLMatch;
+  match: Match;
   showLiveBadge?: boolean;
 }
 
