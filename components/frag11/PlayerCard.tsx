@@ -30,18 +30,28 @@ export function PlayerCard({
   disabled,
   showDetailedStats,
 }: PlayerCardProps) {
-  const roleColors = {
+  // Role colors for CyberCard (must match CyberCard variants)
+  const roleCardColors = {
+    WK: 'cyan',
+    BAT: 'purple',
+    AR: 'pink',
+    BOWL: 'gold', // Changed from 'green' to 'gold' for CyberCard compatibility
+  } as const;
+
+  // Role colors for CyberBadge (can use 'green')
+  const roleBadgeColors = {
     WK: 'cyan',
     BAT: 'purple',
     AR: 'pink',
     BOWL: 'green',
   } as const;
 
-  const roleColor = roleColors[player.role];
+  const roleCardColor = roleCardColors[player.role];
+  const roleBadgeColor = roleBadgeColors[player.role];
 
   return (
     <CyberCard
-      variant={isSelected ? roleColor : 'default'}
+      variant={isSelected ? roleCardColor : 'default'}
       glow={isCaptain || isViceCaptain}
       hover={!disabled}
       className={cn(
@@ -50,13 +60,13 @@ export function PlayerCard({
       )}
     >
       {isCaptain && (
-        <div className="absolute top-2 right-2 bg-yellow-500 text-black px-2 py-1 text-xs font-bold rounded flex items-center gap-1">
+        <div className="absolute top-2 right-2 bg-yellow-500 text-black px-2 py-1 text-xs font-bold rounded flex items-center gap-1 z-20">
           <Star className="w-3 h-3 fill-current" />
           CAPTAIN
         </div>
       )}
       {isViceCaptain && (
-        <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-1 text-xs font-bold rounded flex items-center gap-1">
+        <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-1 text-xs font-bold rounded flex items-center gap-1 z-20">
           <Shield className="w-3 h-3" />
           VC
         </div>
@@ -93,7 +103,7 @@ export function PlayerCard({
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-bold text-cyan-100">{player.name}</h3>
-              <CyberBadge variant={roleColor} className="text-xs">
+              <CyberBadge variant={roleBadgeColor} className="text-xs">
                 {player.role}
               </CyberBadge>
             </div>
