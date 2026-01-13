@@ -2,14 +2,14 @@
 
 **FragVerse** is a comprehensive web application built with Next.js and Supabase, designed for hosting, spectating, and participating in competitive gaming tournaments. 
 
-[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://tournament-platform-demo.vercel.app)
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://frag-verse.vercel.app/home)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## 🎮 Introduction
 
 FragVerse provides organizers, participants, and spectators with powerful tools to host and engage in tournaments across various games and sports. Whether you're running casual office competitions or structured gaming events, FragVerse simplifies tournament management and enhances the competitive experience.
 
-**Live Demo**: https://tournament-platform-demo.vercel.app
+**Live Demo**: https://frag-verse.vercel.app/home
 
 ---
 
