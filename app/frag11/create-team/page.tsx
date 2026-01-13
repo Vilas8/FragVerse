@@ -2,17 +2,19 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Users, Trophy, TrendingUp, Save, ArrowLeft, Filter, Search } from 'lucide-react';
+import { Users, Save, ArrowLeft, Filter, Search } from 'lucide-react';
 import { CyberCard, CyberCardHeader, CyberCardTitle, CyberCardContent } from '@/components/ui/cyber-card';
 import { CyberButton } from '@/components/ui/cyber-button';
 import { CyberInput, CyberSelect } from '@/components/ui/cyber-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { IPLPlayer, IPLMatch, UserTeam, PlayerRole, SortOption } from '@/types/frag11';
+import { IPLPlayer, Match, PlayerRole } from '@/types/frag11';
 import { PlayerCard } from '@/components/frag11/PlayerCard';
 import { TeamPreview } from '@/components/frag11/TeamPreview';
 import { validateTeam } from '@/lib/frag11/teamValidation';
 import { createClient } from '@/utils/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+
+type SortOption = 'points' | 'credits' | 'selected_by' | 'name';
 
 function CreateTeamContent() {
   const searchParams = useSearchParams();
@@ -20,7 +22,7 @@ function CreateTeamContent() {
   const { toast } = useToast();
   const matchId = searchParams.get('match');
 
-  const [match, setMatch] = useState<IPLMatch | null>(null);
+  const [match, setMatch] = useState<Match | null>(null);
   const [allPlayers, setAllPlayers] = useState<IPLPlayer[]>([]);
   const [filteredPlayers, setFilteredPlayers] = useState<IPLPlayer[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<IPLPlayer[]>([]);
@@ -150,9 +152,16 @@ function CreateTeamContent() {
   };
 
   const handleSaveTeam = async () => {
-    if (!matchId) return;
+    if (!matchId || !match) return;
 
-    const validation = validateTeam(selectedPlayers, captainId, viceCaptainId);
+    const validation = validateTeam(
+      selectedPlayers, 
+      captainId || undefined, 
+      viceCaptainId || undefined,
+      match.team1_id,
+      match.team2_id
+    );
+    
     if (!validation.isValid) {
       toast({
         title: 'Invalid Team',
@@ -178,12 +187,7 @@ function CreateTeamContent() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Group players by role
-      const wicketKeepers = selectedPlayers.filter(p => p.role === 'WK').map(p => p.id);
-      const batters = selectedPlayers.filter(p => p.role === 'BAT').map(p => p.id);
-      const allRounders = selectedPlayers.filter(p => p.role === 'AR').map(p => p.id);
-      const bowlers = selectedPlayers.filter(p => p.role === 'BOWL').map(p => p.id);
-
+      const playerIds = selectedPlayers.map(p => p.id);
       const totalCredits = selectedPlayers.reduce((sum, p) => sum + p.credits, 0);
 
       const { data, error } = await supabase
@@ -192,10 +196,7 @@ function CreateTeamContent() {
           user_id: user.id,
           match_id: matchId,
           team_name: teamName,
-          wicket_keepers: wicketKeepers,
-          batters: batters,
-          all_rounders: allRounders,
-          bowlers: bowlers,
+          player_ids: playerIds,
           captain_id: captainId!,
           vice_captain_id: viceCaptainId!,
           total_credits_used: totalCredits,
@@ -224,7 +225,6 @@ function CreateTeamContent() {
   };
 
   const totalCreditsUsed = selectedPlayers.reduce((sum, p) => sum + p.credits, 0);
-  const creditsRemaining = 100 - totalCreditsUsed;
 
   if (loading) {
     return (
@@ -269,11 +269,12 @@ function CreateTeamContent() {
             
             <CyberCard variant="cyan" glass>
               <CyberCardContent className="p-4 text-center">
-                <div className="text-sm text-cyan-100/60">Credits Remaining</div>
-                <div className={`text-3xl font-bold ${
-                  creditsRemaining < 0 ? 'text-red-400' : 'text-cyan-100'
-                }`}>
-                  {creditsRemaining.toFixed(1)}
+                <div className="text-sm text-cyan-100/60">Players Selected</div>
+                <div className="text-3xl font-bold text-cyan-100">
+                  {selectedPlayers.length}/11
+                </div>
+                <div className="text-xs text-cyan-100/50 mt-1">
+                  {totalCreditsUsed.toFixed(1)} credits used
                 </div>
               </CyberCardContent>
             </CyberCard>
