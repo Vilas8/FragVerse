@@ -2,19 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Trophy, Users, TrendingUp, Zap, Calendar, Clock, ChevronRight } from 'lucide-react';
-import { CyberCard, CyberCardHeader, CyberCardTitle, CyberCardContent, CyberBadge } from '@/components/ui/cyber-card';
+import { Trophy, Users, TrendingUp, Zap, ChevronRight } from 'lucide-react';
+import { CyberCard, CyberCardContent } from '@/components/ui/cyber-card';
 import { CyberButton } from '@/components/ui/cyber-button';
-import { IPLMatch, Contest } from '@/types/frag11';
+import { Match, Contest } from '@/types/frag11';
 import { MatchCard } from '@/components/frag11/MatchCard';
 import { ContestCard } from '@/components/frag11/ContestCard';
 import { createClient } from '@/utils/supabase/client';
 
 export default function Frag11Dashboard() {
-  const [upcomingMatches, setUpcomingMatches] = useState<IPLMatch[]>([]);
-  const [liveMatches, setLiveMatches] = useState<IPLMatch[]>([]);
+  const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
+  const [liveMatches, setLiveMatches] = useState<Match[]>([]);
   const [featuredContests, setFeaturedContests] = useState<Contest[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadDashboardData();
@@ -58,8 +57,6 @@ export default function Frag11Dashboard() {
       }
     } catch (error) {
       console.error('Error loading dashboard:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -200,7 +197,7 @@ export default function Frag11Dashboard() {
                 </div>
                 <h3 className="text-xl font-bold text-cyan-100 mb-2">Select Match</h3>
                 <p className="text-cyan-100/60">
-                  Choose an upcoming IPL match and pick 11 players within 100 credits
+                  Choose an upcoming IPL match and start building your dream team
                 </p>
               </CyberCardContent>
             </CyberCard>
@@ -212,7 +209,7 @@ export default function Frag11Dashboard() {
                 </div>
                 <h3 className="text-xl font-bold text-cyan-100 mb-2">Create Team</h3>
                 <p className="text-cyan-100/60">
-                  Build your fantasy team and select captain (2x) & vice-captain (1.5x)
+                  Pick 11 players and select captain (2x) & vice-captain (1.5x)
                 </p>
               </CyberCardContent>
             </CyberCard>
